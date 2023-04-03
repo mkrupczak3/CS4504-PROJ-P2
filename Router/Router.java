@@ -40,6 +40,8 @@ public class Router {
         HashMap<String, InetAddress> RoutingMap = new HashMap<String, InetAddress>();
 
         Socket incomingSocket = null;
+        InterRouterThread irt = null;
+        boolean isIRTOpen = false;
         Boolean running = true;
         while (running == true) {
             try {
@@ -48,6 +50,7 @@ public class Router {
                 String[] parts = message.split("\\s+"); // Split the message by whitespace
                 parts[0] = parts[0].trim();
                 parts[1] = parts[1].trim();
+                System.out.println(String.format("Peer %s announced its presence with IP: %s", parts[0], parts[1]));
                 String proclaimerName = parts[0];
                 InetAddress proclaimerIP = InetAddress.getByName(parts[1]);
                 RoutingMap.put(proclaimerName, proclaimerIP); // add the name and ip to RoutingMap
@@ -56,9 +59,23 @@ public class Router {
                 assert(true);
             }
 
+            if (!isIRTOpen) {
+                try {
+                    incomingSocket = counterpartySocket.accept(); // accept an incoming TCP connection from the other Router relaying a request from its Peer
+                    irt = new InterRouterThread(RoutingMap, incomingSocket, otherRouterHostname);
+                    irt.start();
+                    isIRTOpen = true;
+                    System.out.println("Router recieved request from counterparty Router: " + incomingSocket.getInetAddress().getHostAddress());
+                } catch (IOException e) {
+                    System.err.println("Counterparty Router failed to connect to this Router.");
+                    System.exit(1);
+                }
+            }
+
             try {
+                if (!isIRTOpen) { continue; } // wait to accept Peer connection until IRT is open
                 incomingSocket = requestorSocket.accept(); // accept an incoming TCP connection from a requestor Peer
-                RequestorThread r = new RequestorThread(RoutingMap, incomingSocket, otherRouterHostname);
+                RequestorThread r = new RequestorThread(RoutingMap, incomingSocket, irt);
                 r.start();
                 System.out.println("Router recieved request from Peer: " + incomingSocket.getInetAddress().getHostAddress());
             } catch (IOException e) {
@@ -66,15 +83,6 @@ public class Router {
                 System.exit(1);
             }
 
-            try {
-                incomingSocket = counterpartySocket.accept(); // accept an incoming TCP connection from the other Router relaying a request from its Peer
-                InterRouterThread irt = new InterRouterThread(RoutingMap, incomingSocket, otherRouterHostname);
-                irt.start();
-                System.out.println("Router recieved request from counterparty Router: " + incomingSocket.getInetAddress().getHostAddress());
-            } catch (IOException e) {
-                System.err.println("Counterparty Router failed to connect to this Router.");
-                System.exit(1);
-            }
         }
     }
 
