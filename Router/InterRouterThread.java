@@ -63,6 +63,18 @@ public class InterRouterThread extends Thread {
             }
         } catch (IOException e) {
             System.err.println("InterRouterThread failed to read from the other Router.");
+        } finally {
+            out.close();
+            try {
+                in.close();
+            } catch (IOException e) {
+                assert(true); // do nothing
+            }
+            try {
+                incomingSocket.close();
+            } catch (IOException e) {
+                assert(true); // do nothing
+            }
             System.exit(1);
         }
     }

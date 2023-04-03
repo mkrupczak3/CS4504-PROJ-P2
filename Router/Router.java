@@ -37,8 +37,8 @@ public class Router {
         }
 
         // Lookup map, key is a String for hostname, value is its IP
-        //     note, RoutingMap will only contain peers owned by this router and not the counterparty Router
-        HashMap<String, InetAddress> RoutingMap = new HashMap<String, InetAddress>();
+        //     note, routingMap will only contain peers owned by this router and not the counterparty Router
+        HashMap<String, InetAddress> routingMap = new HashMap<String, InetAddress>();
 
         Socket incomingSocket = null;
         InterRouterThread irt = null;
@@ -54,7 +54,7 @@ public class Router {
                 System.out.println(String.format("Peer %s announced its presence with IP: %s", parts[0], parts[1]));
                 String proclaimerName = parts[0];
                 InetAddress proclaimerIP = InetAddress.getByName(parts[1]);
-                RoutingMap.put(proclaimerName, proclaimerIP); // add the name and ip to RoutingMap
+                routingMap.put(proclaimerName, proclaimerIP); // add the name and ip to routingMap
             } catch (SocketTimeoutException e) {
                 // Do nothing, just continue the loop
                 assert(true);
@@ -63,7 +63,7 @@ public class Router {
             if (!isIRTOpen) {
                 try {
                     incomingSocket = counterpartySocket.accept(); // accept an incoming TCP connection from the other Router relaying a request from its Peer
-                    irt = new InterRouterThread(RoutingMap, incomingSocket, otherRouterHostname);
+                    irt = new InterRouterThread(routingMap, incomingSocket, otherRouterHostname);
                     irt.start();
                     isIRTOpen = true;
                     System.out.println("Router recieved request from counterparty Router: " + incomingSocket.getInetAddress().getHostAddress());
@@ -76,7 +76,7 @@ public class Router {
             try {
                 if (!isIRTOpen) { continue; } // wait to accept Peer connection until IRT is open
                 incomingSocket = requestorSocket.accept(); // accept an incoming TCP connection from a requestor Peer
-                RequestorThread r = new RequestorThread(RoutingMap, incomingSocket, irt);
+                RequestorThread r = new RequestorThread(routingMap, incomingSocket, irt);
                 r.start();
                 System.out.println("Router recieved request from Peer: " + incomingSocket.getInetAddress().getHostAddress());
             } catch (IOException e) {
@@ -85,6 +85,9 @@ public class Router {
             }
 
         }
+        announcementRecvSocket.close();
+        requestorSocket.close();
+        counterpartySocket.close();
     }
 
     public static String getOtherHostnameFromEnv() {
