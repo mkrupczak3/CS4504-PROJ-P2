@@ -30,6 +30,7 @@ public class Router {
         int counterpartyPort = 6666;
         ServerSocket counterpartySocket = null;
         try {
+            counterpartySocket = new ServerSocket(counterpartyPort);
         } catch (IOException e ) {
             System.err.println("Could not listen for requests from counterparty: "+counterpartyPort+".");
             System.exit(1);
@@ -42,7 +43,7 @@ public class Router {
         Socket incomingSocket = null;
         InterRouterThread irt = null;
         boolean isIRTOpen = false;
-        Boolean running = true;
+        boolean running = true;
         while (running == true) {
             try {
                 announcementRecvSocket.receive(incomingPacket); // Receive incoming UDP announcement packet
@@ -97,8 +98,8 @@ public class Router {
         if (otherRouterHostname == null || otherRouterHostname.equals("")) {
             System.err.println("Counterparty Hostname was never provided. Exiting...");
             System.exit(1);
-        } else {
-            return otherRouterHostname;
         }
+
+        return otherRouterHostname;
     }
 }

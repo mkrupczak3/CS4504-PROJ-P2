@@ -14,7 +14,7 @@ public class RequestorThread extends Thread {
     // public static SynchronizedRollingAverage lookupAverage = new SynchronizedRollingAverage();
     // public static SynchronizedRollingAverage messageSizeAverage = new SynchronizedRollingAverage();
 
-    RequestorThread(HashMap<String, InetAddress> RoutingMap, Socket incomingSocket, InterRouterThread irt) {
+    RequestorThread(HashMap<String, InetAddress> RoutingMap, Socket incomingSocket, InterRouterThread irt) throws IOException {
         requestorReturnLine = new PrintWriter(incomingSocket.getOutputStream(), true); // A way to send result back to the requestor
         in = new BufferedReader(new InputStreamReader(incomingSocket.getInputStream())); // A way to recieve request from the requestor
         this.RoutingMap = RoutingMap; // this will only be used in the special case that our peer is already on the same router
@@ -33,8 +33,8 @@ public class RequestorThread extends Thread {
             if (isTargetOnSameRouter) {
                 requestorReturnLine.println(lookup.getHostAddress());
             } else {
+                irt.registerRequestor(addr, requestorReturnLine); // Register the requestor and its response writer
                 irt.sendRequest(requestor, target);
-                // TODO recv result from irt here (may be pretty tricky)
             }
 
         } catch (IOException e) {
