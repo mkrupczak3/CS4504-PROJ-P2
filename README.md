@@ -1,4 +1,4 @@
-# CS4504 PROJ 1 P1
+# CS4504 PROJ 1 P2
 
 ## Members:
 
