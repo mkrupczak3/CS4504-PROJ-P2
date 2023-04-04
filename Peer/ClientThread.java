@@ -1,26 +1,40 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
 public class ClientThread extends Thread
 {
-    private Socket toPeer;
-    private String peerName; //target peer
+    private String peerTargetName; //target peer
     private String routerName;
     private int peerPortNum;
-    public ClientThread(String t, String routerN, int port)
+    private int routerPortNum;
+    public ClientThread(String t, String routerN, int peerPort, int routerPort)
     {
-        peerName = t;
-        peerPortNum = port;
+        peerTargetName = t;
+        routerName = routerN;
+        peerPortNum = peerPort;
+        routerPortNum = routerPort;
     }
 
     public void run()
     {
-        //Connect to router and find target peer's IP
-        try(Socket toRouterSocket = new Socket(routerName, 5555))
-        {
+        PrintWriter out;
+        BufferedReader in;
+        String targetIP;
 
+        //Connect to router and find target peer's IP
+        try(Socket toRouterSocket = new Socket(routerName, routerPortNum))
+        {
+            out = new PrintWriter(toRouterSocket.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(toRouterSocket.getInputStream()));
+            String toRouterMessage = InetAddress.getLocalHost().getHostName();
+            out.println(toRouterMessage);
+            out.println(peerTargetName);
+            targetIP = in.readLine();
         }
         catch(UnknownHostException e){
             System.err.println("Could not find " + routerName + "\n" + e.getMessage());
@@ -28,5 +42,7 @@ public class ClientThread extends Thread
         catch(IOException e){
             System.err.println("Failed to connect\n" + e.getMessage());
         }
+
+        //Connect to targetPeer
     }
 }

@@ -59,14 +59,15 @@ public class Peer
             System.err.println("Failed to send packet\n" + e.getMessage());
         }
 
-        //step 2. Either act as server or client
-        int portNumber = 5556; //default value
+        //If this peer is a client, starts client thread. Then, executes server method
+        int peerPortNumber = 5556; //port for peer to peer communication
+        int routerRequestPort = 5555;
         if(isClient)
         {
-            ClientThread client = new ClientThread(targetName, routerName, portNumber);
+            ClientThread client = new ClientThread(targetName, routerName, peerPortNumber, routerRequestPort);
             client.start();
         }
-        actAsServer(portNumber); //all peers act as a server
+        actAsServer(peerPortNumber); //all peers act as a server
     }
 
     /**
