@@ -12,23 +12,32 @@ public class Peer
         //Initialization with default values here
         DatagramPacket myAnnouncementPacket;
         String routerAddress = "172.23.0.6"; //to be filled in later
+        String routerName = null;
         int routerPortNum = 4444;
         String myAnnouncementString; //holds local addressing information
         byte[] bufferMessage;
-        String targetName;
+        String targetName = null;
         boolean isClient = false; //will affect method later
 
-        //adding parameters if present
+        //adding Environment Variables if present
         String temp = getRouterIPFromEnv();
         if(temp != null) //router address
         {
             routerAddress = temp;
+            temp = null;
         }
         temp = getTargetFromEnv();
         if(temp != null) //target node's device name
         {
             targetName = temp;
             isClient = true;
+            temp = null;
+        }
+        temp = getRouterHostNameFromEnv();
+        if(temp != null)
+        {
+            routerName = temp;
+            temp = null;
         }
 
         //Send local addressing data to the router
@@ -37,7 +46,6 @@ public class Peer
             //Setting up announcement string message
             myAnnouncementString = InetAddress.getLocalHost().getHostName(); //name
             myAnnouncementString += " " + InetAddress.getLocalHost().getHostAddress(); //IP address
-            myAnnouncementString += " " + isClient; //isClient
 
             //sending packet over UDP socket
             bufferMessage = myAnnouncementString.getBytes();
@@ -53,7 +61,12 @@ public class Peer
 
         //step 2. Either act as server or client
         int portNumber = 5556; //default value
-        actAsServer(portNumber);
+        if(isClient)
+        {
+            ClientThread client = new ClientThread(targetName, routerName, portNumber);
+            client.start();
+        }
+        actAsServer(portNumber); //all peers act as a server
     }
 
     /**
@@ -125,6 +138,25 @@ public class Peer
         return routerIP;
     }
 
+    private static String getRouterHostNameFromEnv()
+    {
+        String routerName = null;
+        try {
+            routerName = System.getenv("ROUTER_HOSTNAME"); // get peer's router IP Address from bash environment variable
+        } catch (SecurityException se) {
+            System.err.println("Process failed to obtain needed Env Variable due to security policy. Exiting...");
+            System.exit(1);
+        }
+        if (routerName == null || routerName.equals("")) {
+            System.err.println("Router IP address was never provided. Exiting...");
+            System.exit(1);
+        }
+        return routerName;
+    }
+
+    /**
+     *Fetches the target's name
+     */
     private static String getTargetFromEnv()
     {
         String target = null;

@@ -24,6 +24,7 @@ public class PeerThread extends Thread
         sharedInt.getAndDecrement(); //tells parent class Peer to stop listening
     }
 
+    //SynchronizedRollingAverage copied from P1 of project
     static class SynchronizedRollingAverage {
         private double avg = 0;
         private long count = 0;
