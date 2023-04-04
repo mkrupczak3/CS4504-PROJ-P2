@@ -6,13 +6,7 @@ public class Peer
 {
     static AtomicInteger sharedInt; //closes running loop when value == 0
 
-     /**
-     * @param args
-     * 1-Router IP address,
-     * 2-port number of router,
-     * 3-isClient boolean,
-     * 4-port number of peer
-     */
+
     public static void main(String[] args)
     {
         //Initialization with default values here
@@ -21,22 +15,20 @@ public class Peer
         int routerPortNum = 4444;
         String myAnnouncementString; //holds local addressing information
         byte[] bufferMessage;
-        boolean isClient = true; //will affect method later
+        String targetName;
+        boolean isClient = false; //will affect method later
 
         //adding parameters if present
-        if(args.length > 0) //router address
+        String temp = getRouterIPFromEnv();
+        if(temp != null) //router address
         {
-            routerAddress = args[0];
+            routerAddress = temp;
         }
-        if(args.length > 1)//port number of router
+        temp = getTargetFromEnv();
+        if(temp != null) //target node's device name
         {
-            String num = args[1];
-            num = num.trim();
-            routerPortNum = Integer.parseInt(num);
-        }
-        if(args.length > 2) //boolean isClient. determines if this peer acts as a client or server
-        {
-            isClient = "True".equalsIgnoreCase(args[2]);
+            targetName = temp;
+            isClient = true;
         }
 
         //Send local addressing data to the router
@@ -112,5 +104,40 @@ public class Peer
         {
             System.err.println("Failed to close Peer ServerSocket");
         }
+    }
+
+    /**
+     * fetches the router IP address
+     */
+    private static String getRouterIPFromEnv()
+    {
+        String routerIP = null;
+        try {
+            routerIP = System.getenv("ROUTER_IPADDRESS"); // get peer's router IP Address from bash environment variable
+        } catch (SecurityException se) {
+            System.err.println("Process failed to obtain needed Env Variable due to security policy. Exiting...");
+            System.exit(1);
+        }
+        if (routerIP == null || routerIP.equals("")) {
+            System.err.println("Router IP address was never provided. Exiting...");
+            System.exit(1);
+        }
+        return routerIP;
+    }
+
+    private static String getTargetFromEnv()
+    {
+        String target = null;
+        try {
+            target = System.getenv("TARGET_NAME"); // get the client's target local name from bash environment variable
+        } catch (SecurityException se) {
+            System.err.println("Process failed to obtain needed Env Variable due to security policy. Exiting...");
+            System.exit(1);
+        }
+        if (target == null || target.equals("")) {
+            System.err.println("target name was never provided. Exiting...");
+            System.exit(1);
+        }
+        return target;
     }
 }
