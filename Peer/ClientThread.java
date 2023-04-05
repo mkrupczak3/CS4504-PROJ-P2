@@ -35,6 +35,10 @@ public class ClientThread extends Thread
             out.println(toRouterMessage);
             out.println(peerTargetName);
             targetIP = in.readLine();
+
+            //disconnect from router
+            out.close();
+            in.close();
         }
         catch(UnknownHostException e){
             System.err.println("Could not find " + routerName + "\n" + e.getMessage());
@@ -43,6 +47,8 @@ public class ClientThread extends Thread
             System.err.println("Failed to connect\n" + e.getMessage());
         }
 
+
         //Connect to targetPeer
+
     }
 }
