@@ -18,6 +18,7 @@ public class Peer
         byte[] bufferMessage;
         String targetName = null;
         boolean isClient = false; //will affect method later
+        String fileName = null;
 
         //adding Environment Variables if present
         String temp = getRouterIPFromEnv();
@@ -37,6 +38,12 @@ public class Peer
         if(temp != null)
         {
             routerName = temp;
+            temp = null;
+        }
+        temp = getFileNameFromEnv();
+        if(temp != null) //Name of file being sent to target peer
+        {
+            fileName = temp;
             temp = null;
         }
 
@@ -64,7 +71,7 @@ public class Peer
         int routerRequestPort = 5555;
         if(isClient)
         {
-            ClientThread client = new ClientThread(targetName, routerName, peerPortNumber, routerRequestPort);
+            ClientThread client = new ClientThread(targetName, routerName, peerPortNumber, routerRequestPort, fileName);
             client.start();
         }
         actAsServer(peerPortNumber); //all peers act as a server
@@ -172,5 +179,22 @@ public class Peer
             System.exit(1);
         }
         return target;
+    }
+
+
+    private static String getFileNameFromEnv()
+    {
+        String file = null;
+        try{
+            file = System.getenv("FILE_NAME"); // get the name of the file being sent from bash enviorment variable
+        }catch (SecurityException se) {
+            System.err.println("Process failed to obtain needed Env Variable due to security policy. Exiting...");
+            System.exit(1);
+        }
+        if (file == null || file.equals("")) {
+            System.err.println("target name was never provided. Exiting...");
+            System.exit(1);
+        }
+        return file;
     }
 }
