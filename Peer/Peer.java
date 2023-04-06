@@ -15,7 +15,6 @@ public class Peer
     {
         //Initialization with default values here
         DatagramPacket myAnnouncementPacket;
-        String routerAddress = "172.23.0.6"; //to be filled in later
         String routerName = null;
         int routerPortNum = 4444;
         String myAnnouncementString; //holds local addressing information
@@ -25,12 +24,7 @@ public class Peer
         String fileName = null;
 
         //adding Environment Variables if present
-        String temp = getRouterIPFromEnv();
-        if(temp != null) //router address
-        {
-            routerAddress = temp;
-            temp = null;
-        }
+        String temp;
         temp = getTargetFromEnv();
         if(temp != null) //target node's device name
         {
@@ -60,7 +54,7 @@ public class Peer
 
             //sending packet over UDP socket
             bufferMessage = myAnnouncementString.getBytes();
-            myAnnouncementPacket = new DatagramPacket(bufferMessage, bufferMessage.length, InetAddress.getByName(routerAddress), routerPortNum);
+            myAnnouncementPacket = new DatagramPacket(bufferMessage, bufferMessage.length, InetAddress.getByName(routerName), routerPortNum);
             announceSendSocket.send(myAnnouncementPacket);
         } catch (SocketException e) {
             System.err.println("Could not build datagram socket on port " + routerPortNum + "\n" + e.getMessage());
@@ -134,25 +128,6 @@ public class Peer
         {
             System.err.println("Failed to close Peer ServerSocket");
         }
-    }
-
-    /**
-     * fetches the router IP address
-     */
-    private static String getRouterIPFromEnv()
-    {
-        String routerIP = null;
-        try {
-            routerIP = System.getenv("ROUTER_IPADDRESS"); // get peer's router IP Address from bash environment variable
-        } catch (SecurityException se) {
-            System.err.println("Process failed to obtain needed Env Variable due to security policy. Exiting...");
-            System.exit(1);
-        }
-        if (routerIP == null || routerIP.equals("")) {
-            System.err.println("Router IP address was never provided. Exiting...");
-            System.exit(1);
-        }
-        return routerIP;
     }
 
     private static String getRouterHostNameFromEnv()
