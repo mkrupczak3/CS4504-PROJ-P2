@@ -6,6 +6,10 @@ public class Peer
 {
     static AtomicInteger sharedInt; //closes running loop when value == 0
 
+    //Variables for data
+    public static SynchronizedRollingAverage lookupAverage = new SynchronizedRollingAverage();
+    public static SynchronizedRollingAverage messageSizeAverage = new SynchronizedRollingAverage();
+    public static SynchronizedRollingAverage peerCycleTime = new SynchronizedRollingAverage();
 
     public static void main(String[] args)
     {
@@ -115,6 +119,11 @@ public class Peer
             }
         }
 
+        //printing variable data
+        System.out.println("Average lookup time for router: " + lookupAverage.getAverage() + "\n" +
+                "Average message size: " + messageSizeAverage.getAverage() + "\n" +
+                "Average cycle time for peer communication: " + peerCycleTime.getAverage());
+
         //Close server socket
         try{
             if(listeningSocket != null)
@@ -196,5 +205,18 @@ public class Peer
             System.exit(1);
         }
         return file;
+    }
+    //SynchronizedRollingAverage copied from P1 of project
+    static class SynchronizedRollingAverage {
+        private double avg = 0;
+        private long count = 0;
+
+        public synchronized void addValue(double value) {
+            avg = ((avg * count) + value) / (++count);
+        }
+
+        public synchronized double getAverage() {
+            return avg;
+        }
     }
 }
