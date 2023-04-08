@@ -55,6 +55,17 @@ public class ClientThread extends Thread
             System.exit(1);
         }
 
+        //Ensuring that the target IP was received
+        if(targetIP.contains("NOTFOUND"))
+        {
+            System.err.println("The target IP was not found.\nExiting Program.");
+            System.exit(1);
+        }
+        else {
+            System.out.println("Target IP retrieved: " + targetIP);
+            System.out.println("Connecting to target...");
+        }
+
         //Router lookup data
         long routerLookupTimeEnd = System.nanoTime();
         long timeDifference = routerLookupTimeStart-routerLookupTimeEnd;
