@@ -59,7 +59,6 @@ public class ClientThread extends Thread
         if(targetIP.contains("NOTFOUND"))
         {
             System.err.println("The target IP was not found.\nExiting Program.");
-            System.exit(1);
         }
         else {
             System.out.println("Target IP retrieved: " + targetIP);
@@ -83,7 +82,6 @@ public class ClientThread extends Thread
         }
         catch(IOException e){
             System.err.println("Failed to connect\n" + e.getMessage());
-            System.exit(1);
         }
         //send the fileName
         out.print(fileName);
@@ -97,7 +95,6 @@ public class ClientThread extends Thread
             fileBytes.read(fileByteArray);
         } catch (Exception e) {
             System.err.println("File was empty or could not be read");
-            System.exit(1);
         }
         String base64Payload = new String(Base64.getEncoder().encodeToString(fileByteArray));
         long peerCycleTimeStart = System.nanoTime();

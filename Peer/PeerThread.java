@@ -30,7 +30,6 @@ public class PeerThread extends Thread
             fileName = in.readLine();
         } catch (IOException e) {
             System.err.println("Failed to create Writer/Reader\n" + e.getMessage());
-            System.exit(1); //Is This needed?
         }
         System.out.println("Connection is successful. Received file name: " + fileName);
 
@@ -42,28 +41,10 @@ public class PeerThread extends Thread
 
         } catch (IOException e) {
             System.err.println("IO error occurred when trying to dump to file: " + e.getMessage());
-            System.exit(1);
-        }
-
-        //Opening File
-        boolean openFile = false;
-        try
-        {
-            File tempFile = new File(fileName);
-            if(Desktop.isDesktopSupported() && tempFile.exists())
-            {
-                Desktop myDesk = Desktop.getDesktop();
-                myDesk.open(tempFile);
-                openFile = true;
-            }
-        }
-        catch (Exception e)
-        {
-            System.err.print("Failed to open file\n" + e.getMessage());
         }
 
         //Closing statements
-        out.print("Received file. Opened: " + openFile);
+        out.print("Received file. Opened: ");
         System.out.print("Communication finished. Closing sockets...");
         try
         {
