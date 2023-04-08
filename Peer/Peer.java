@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.lang.Thread;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Peer
@@ -47,8 +48,8 @@ public class Peer
 
         //Send local addressing data to the router
         try (Socket sock = new Socket(routerName, routerPortNum)) {
-            out = new PrintWriter(sock.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+            PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 
             out.println("ANNOUNCE");
             out.println(InetAddress.getLocalHost().getHostName());
@@ -62,7 +63,12 @@ public class Peer
         }
 
         System.out.println("Sent announcment, waiting...");
-        Thread.delay(4000);
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            System.err.println("Interrupted, exiting.");
+            System.exit(1);
+        }
 
         //If this peer is a client, starts client thread. Then, executes server method
         int peerPortNumber = 5556; //port for peer to peer communication
