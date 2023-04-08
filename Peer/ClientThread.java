@@ -38,6 +38,7 @@ public class ClientThread extends Thread
             out = new PrintWriter(toRouterSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(toRouterSocket.getInputStream()));
             String toRouterMessage = InetAddress.getLocalHost().getHostName();
+            out.println("GETPEER");
             out.println(toRouterMessage);
             out.println(peerTargetName);
             targetIP = in.readLine();

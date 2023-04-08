@@ -46,16 +46,13 @@ public class Peer
         }
 
         //Send local addressing data to the router
-        try (DatagramSocket announceSendSocket = new DatagramSocket(routerPortNum)) //try with resources
-        {
-            //Setting up announcement string message
-            myAnnouncementString = InetAddress.getLocalHost().getHostName(); //name
-            myAnnouncementString += " " + InetAddress.getLocalHost().getHostAddress(); //IP address
+        try (Socket sock = new Socket(routerName, routerPortNum)) {
+            out = new PrintWriter(sock.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 
-            //sending packet over UDP socket
-            bufferMessage = myAnnouncementString.getBytes();
-            myAnnouncementPacket = new DatagramPacket(bufferMessage, bufferMessage.length, InetAddress.getByName(routerName), routerPortNum);
-            announceSendSocket.send(myAnnouncementPacket);
+            out.println("ANNOUNCE");
+            out.println(InetAddress.getLocalHost().getHostName());
+            in.readLine(); // wait for ok
         } catch (SocketException e) {
             System.err.println("Could not build datagram socket on port " + routerPortNum + "\n" + e.getMessage());
         } catch (UnknownHostException e) {
@@ -63,6 +60,9 @@ public class Peer
         } catch (IOException e) {
             System.err.println("Failed to send packet\n" + e.getMessage());
         }
+
+        System.out.println("Sent announcment, waiting...");
+        Thread.delay(4000);
 
         //If this peer is a client, starts client thread. Then, executes server method
         int peerPortNumber = 5556; //port for peer to peer communication
