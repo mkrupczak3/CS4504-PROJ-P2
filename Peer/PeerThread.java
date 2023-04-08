@@ -3,6 +3,7 @@ import java.net.*;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicInteger;
 
+
 public class PeerThread extends Thread
 {
     private Socket outSocket;
@@ -29,7 +30,6 @@ public class PeerThread extends Thread
             fileName = in.readLine();
         } catch (IOException e) {
             System.err.println("Failed to create Writer/Reader\n" + e.getMessage());
-            System.exit(1); //Is This needed?
         }
         System.out.println("Connection is successful. Received file name: " + fileName);
 
@@ -41,20 +41,15 @@ public class PeerThread extends Thread
 
         } catch (IOException e) {
             System.err.println("IO error occurred when trying to dump to file: " + e.getMessage());
-            System.exit(1);
         }
 
         //Closing statements
+        out.print("Received file. Opened: ");
+        System.out.print("Communication finished. Closing sockets...");
         try
         {
-            if(out != null)
-            {
-                out.close();
-            }
-            if(in != null)
-            {
-                in.close();
-            }
+            out.close();
+            in.close();
         }
         catch(IOException e)
         {
