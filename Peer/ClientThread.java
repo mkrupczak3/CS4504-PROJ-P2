@@ -101,5 +101,16 @@ public class ClientThread extends Thread
         String base64Payload = new String(Base64.getEncoder().encodeToString(fileByteArray));
         long peerCycleTimeStart = System.nanoTime();
         out.println(base64Payload); //sending base64 payload to target Peer
+
+        //receiving reply
+        try {
+            String reply = in.readLine();
+            System.out.print(peerTargetName + " responded: " + reply);
+            System.out.print("Communication finished. Closing sockets...");
+            out.close();
+            in.close();
+        } catch (IOException e) {
+            System.err.print("Failed to get reply");
+        }
     }
 }
