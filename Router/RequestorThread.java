@@ -1,9 +1,10 @@
 import java.io.*;
 import java.net.*;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class RequestorThread extends Thread {
-    private final HashMap<String, InetAddress> routingMap;
+    private final ConcurrentHashMap<String, InetAddress> routingMap;
     private final InterRouterThread irt;
     private final PrintWriter requestorReturnLine;
     private final BufferedReader in;
@@ -11,7 +12,7 @@ public class RequestorThread extends Thread {
     // public static SynchronizedRollingAverage lookupAverage = new SynchronizedRollingAverage();
     // public static SynchronizedRollingAverage messageSizeAverage = new SynchronizedRollingAverage();
 
-    RequestorThread(HashMap<String, InetAddress> routingMap, Socket incomingSocket, InterRouterThread irt) throws IOException {
+    RequestorThread(ConcurrentHashMap<String, InetAddress> routingMap, Socket incomingSocket, InterRouterThread irt) throws IOException {
         requestorReturnLine = new PrintWriter(incomingSocket.getOutputStream(), true); // A way to send result back to the requestor
         in = new BufferedReader(new InputStreamReader(incomingSocket.getInputStream())); // A way to recieve request from the requestor
         this.routingMap = routingMap; // this will only be used in the special case that our peer is already on the same router
@@ -33,16 +34,17 @@ public class RequestorThread extends Thread {
                 irt.registerRequestor(addr, requestorReturnLine); // Register the requestor and its response writer
                 irt.sendRequest(requestor, target);
                 in.close();
-                requestorReturnLine.close();
+                // requestorReturnLine.close();
             }
-
         } catch (IOException e) {
             System.err.println("RequestorThread not able to use incoming socket.");
-
         } finally {
-            in.close();
+            try {
+                in.close();
+            } catch (IOException e) {
+                assert(true);
+            }
             requestorReturnLine.close();
-            System.exit(1);
         }
     }
 }
