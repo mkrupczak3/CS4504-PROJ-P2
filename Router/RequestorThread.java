@@ -27,7 +27,7 @@ public class RequestorThread extends Thread {
             while (true) {
                 String command = in.readLine();
                 if (command == null) {
-                    System.err.println(String.format("Peer %s unexpectedly closed connection.",
+                    System.err.println(String.format("Peer %s closed connection.",
                                                      addr.getHostAddress()));
                     return;
                 }
@@ -35,7 +35,7 @@ public class RequestorThread extends Thread {
                 if (command.equals("ANNOUNCE")) {
                     String requestor_name = in.readLine();
                     if (requestor_name == null) {
-                        System.err.println(String.format("Peer %s unexpectedly closed connection.",
+                        System.err.println(String.format("Peer %s closed connection.",
                                                          addr.getHostAddress()));
                         return;
                     }
@@ -50,13 +50,13 @@ public class RequestorThread extends Thread {
                 } else if (command.equals("GETPEER")) {
                     String requestor_name = in.readLine();
                     if (requestor_name == null) {
-                        System.err.println(String.format("Peer %s unexpectedly closed connection.",
+                        System.err.println(String.format("Peer %s closed connection.",
                                                          addr.getHostAddress()));
                         return;
                     }
                     String target_name = in.readLine();
                     if (target_name == null) {
-                        System.err.println(String.format("Peer %s unexpectedly closed connection.",
+                        System.err.println(String.format("Peer %s closed connection.",
                                                          addr.getHostAddress()));
                         return;
                     }
