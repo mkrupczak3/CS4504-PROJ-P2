@@ -48,17 +48,18 @@ public class ClientThread extends Thread
         }
         catch(UnknownHostException e){
             System.err.println("Could not find " + routerName + "\n" + e.getMessage());
-            System.exit(1);
+            return;
         }
         catch(IOException e){
             System.err.println("Failed to connect\n" + e.getMessage());
-            System.exit(1);
+            return;
         }
 
         //Ensuring that the target IP was received
         if(targetIP.contains("NOTFOUND"))
         {
             System.err.println("The target IP was not found.\nExiting Program.");
+            return;
         }
         else {
             System.out.println("Target IP retrieved: " + targetIP);
@@ -78,10 +79,11 @@ public class ClientThread extends Thread
         }
         catch(UnknownHostException e){
             System.err.println("Could not find " + peerTargetName + "\n" + e.getMessage());
-            System.exit(1);
+            return;
         }
         catch(IOException e){
             System.err.println("Failed to connect\n" + e.getMessage());
+            return;
         }
         //send the fileName
         out.print(fileName);

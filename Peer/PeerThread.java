@@ -30,8 +30,11 @@ public class PeerThread extends Thread
             fileName = in.readLine();
         } catch (IOException e) {
             System.err.println("Failed to create Writer/Reader\n" + e.getMessage());
+            sharedInt.getAndDecrement();
+            return;
         }
         System.out.println("Connection is successful. Received file name: " + fileName);
+        String returnMessage  = "Successfully received and decoded file";
 
         //receiving the message from ClientThread and converting message from base64 text to original bytes
         try (FileOutputStream fos = new FileOutputStream(fileName)) {
@@ -41,10 +44,11 @@ public class PeerThread extends Thread
 
         } catch (IOException e) {
             System.err.println("IO error occurred when trying to dump to file: " + e.getMessage());
+            returnMessage = "Failed to decode file";
         }
 
         //Closing statements
-        out.print("Received file. Opened: ");
+        out.print(returnMessage);
         System.out.print("Communication finished. Closing sockets...");
         try
         {
