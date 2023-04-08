@@ -3,49 +3,83 @@ import java.net.*;
 import java.util.HashMap;
 
 public class RequestorThread extends Thread {
-    private final HashMap<String, InetAddress> routingMap;
-    private final InterRouterThread irt;
-    private final PrintWriter requestorReturnLine;
-    private final BufferedReader in;
-    private String inputLine, outputLine, requestor, target, addr;
     // public static SynchronizedRollingAverage lookupAverage = new SynchronizedRollingAverage();
     // public static SynchronizedRollingAverage messageSizeAverage = new SynchronizedRollingAverage();
+    private Socket incomingSocket_;
+    private Router router_;
 
-    RequestorThread(HashMap<String, InetAddress> routingMap, Socket incomingSocket, InterRouterThread irt) throws IOException {
-        requestorReturnLine = new PrintWriter(incomingSocket.getOutputStream(), true); // A way to send result back to the requestor
-        in = new BufferedReader(new InputStreamReader(incomingSocket.getInputStream())); // A way to recieve request from the requestor
-        this.routingMap = routingMap; // this will only be used in the special case that our peer is already on the same router
-        this.irt = irt;
-        addr = incomingSocket.getInetAddress().getHostAddress();
+    public RequestorThread(Socket incomingSocket, Router router) throws IOException {
+        super();
+
+        incomingSocket_ = incomingSocket;
+        router_ = router;
     }
 
     @Override
     public void run() {
+        InetAddress addr = incomingSocket_.getInetAddress();
+        System.out.println("Got connection from peer "+addr.getHostAddress()+".");
+
         try {
-            requestor = in.readLine();
-            target = in.readLine();
-            System.out.println(String.format("Requestor %s is asking for target %s", requestor, target));
-            InetAddress lookup = routingMap.get(target);
-            boolean isTargetOnSameRouter = (lookup != null);
-            if (isTargetOnSameRouter) {
-                requestorReturnLine.println(lookup.getHostAddress());
+            PrintWriter out = new PrintWriter(incomingSocket_.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(incomingSocket_.getInputStream()));
+
+            String command = in.readLine();
+            if (command == null) {
+                System.err.println(String.format("Peer %s unexpectedly closed connection.",
+                                                 addr.getHostAddress()));
+                return;
+            }
+
+            if (command.equals("ANNOUNCE")) {
+                String requestor_name = in.readLine();
+                if (requestor_name == null) {
+                    System.err.println(String.format("Peer %s unexpectedly closed connection.",
+                                                     addr.getHostAddress()));
+                    return;
+                }
+
+                System.out.println(String.format("Requestor %s announced.",
+                                                 requestor_name));
+                router_.addPeer(requestor_name, addr);
+
+                String response = "ok";
+                System.out.println(String.format("Response to %s: %s", requestor_name, response)); 
+                out.println(response);
+            } else if (command.equals("GETPEER")) {
+                String requestor_name = in.readLine();
+                if (requestor_name == null) {
+                    System.err.println(String.format("Peer %s unexpectedly closed connection.",
+                                                     addr.getHostAddress()));
+                    return;
+                }
+                String target_name = in.readLine();
+                if (target_name == null) {
+                    System.err.println(String.format("Peer %s unexpectedly closed connection.",
+                                                     addr.getHostAddress()));
+                    return;
+                }
+                System.out.println(String.format("Requestor %s is asking for target %s",
+                                                 requestor_name, target_name));
+                
+                InetAddress lookup = router_.getPeerIp(target_name);
+                String response = lookup == null ? "not found" : lookup.getHostAddress();
+                System.out.println(String.format("Response to %s: %s", requestor_name, response)); 
+                out.println(response);
             } else {
-                irt.registerRequestor(addr, requestorReturnLine); // Register the requestor and its response writer
-                irt.sendRequest(requestor, target);
-                in.close();
-                requestorReturnLine.close();
+                System.err.println(String.format("Unexpected command from peer %s: %s",
+                                                 addr.getHostAddress(), command));
             }
 
         } catch (IOException e) {
-            System.err.println("RequestorThread not able to use incoming socket.");
+            System.err.println("RequestorThread I/O error: " + e.getMessage());
+            e.printStackTrace();
         } finally {
             try {
-                in.close();
-                requestorReturnLine.close();
+                incomingSocket_.close();
             } catch (IOException e) {
-                System.err.println("Failed to close socket.");
+                System.out.println("Could not close socket for peer "+addr.getHostAddress()+".");
             }
-            System.exit(1);
         }
     }
 }

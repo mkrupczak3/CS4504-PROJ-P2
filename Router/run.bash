@@ -7,4 +7,4 @@ if [[ ! -d "$SCRIPT_PATH/build" ]]; then
     exit 1
 fi
 
-java -cp "$SCRIPT_PATH/build" Router "$@"
+java -cp "$SCRIPT_PATH/build" Main "$@"

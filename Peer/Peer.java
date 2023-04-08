@@ -26,7 +26,7 @@ public class Peer
         //adding Environment Variables if present
         String temp;
         temp = getTargetFromEnv();
-        if(temp != null) //target node's device name
+        if(temp != null && !temp.equals("none")) //target node's device name
         {
             targetName = temp;
             isClient = true;
