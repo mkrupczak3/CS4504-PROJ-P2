@@ -42,7 +42,7 @@ public class Router {
             
             out.println(key);
             String response = in.readLine();
-            if (response.equals("not found")) {
+            if (response.equals("404NOTFOUND")) {
                 return null;
             }
 
@@ -106,7 +106,7 @@ public class Router {
                         System.out.println("Request from counterparty: " + request);
 
                         InetAddress addr = getLocalPeerIp(request);
-                        String response = addr == null ? "not found" : addr.getHostAddress();
+                        String response = addr == null ? "404NOTFOUND" : addr.getHostAddress();
                         System.out.println("Response: " + response);
                         out.println(response);
                     }
