@@ -2,6 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.awt.Desktop;
 
 public class PeerThread extends Thread
 {
@@ -44,17 +45,30 @@ public class PeerThread extends Thread
             System.exit(1);
         }
 
-        //Closing statements
+        //Opening File
+        boolean openFile = false;
         try
         {
-            if(out != null)
+            File tempFile = new File(fileName);
+            if(Desktop.isDesktopSupported() && tempFile.exists())
             {
-                out.close();
+                Desktop myDesk = Desktop.getDesktop();
+                myDesk.open(tempFile);
+                openFile = true;
             }
-            if(in != null)
-            {
-                in.close();
-            }
+        }
+        catch (Exception e)
+        {
+            System.err.print("Failed to open file\n" + e.getMessage());
+        }
+
+        //Closing statements
+        out.print("Received file. Opened: " + openFile);
+        System.out.print("Communication finished. Closing sockets...");
+        try
+        {
+            out.close();
+            in.close();
         }
         catch(IOException e)
         {
