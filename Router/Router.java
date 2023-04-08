@@ -99,7 +99,7 @@ public class Router {
             System.exit(1);
         }
         if (otherRouterHostname == null || otherRouterHostname.equals("")) {
-            System.err.println("Counterparty Hostname was never provided. Exiting...");
+            System.err.println("COUNTERPARTY_HOSTNAME not in env. Exiting...");
             System.exit(1);
         }
 

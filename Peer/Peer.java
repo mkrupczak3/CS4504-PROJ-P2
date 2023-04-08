@@ -140,7 +140,7 @@ public class Peer
             System.exit(1);
         }
         if (routerName == null || routerName.equals("")) {
-            System.err.println("Router IP address was never provided. Exiting...");
+            System.err.println("ROUTER_HOSTNAME not in env. Exiting...");
             System.exit(1);
         }
         return routerName;
@@ -159,7 +159,7 @@ public class Peer
             System.exit(1);
         }
         if (target == null || target.equals("")) {
-            System.err.println("target name was never provided. Exiting...");
+            System.err.println("TARGET_NAME not in env. Exiting...");
             System.exit(1);
         }
         return target;
@@ -176,7 +176,7 @@ public class Peer
             System.exit(1);
         }
         if (file == null || file.equals("")) {
-            System.err.println("target name was never provided. Exiting...");
+            System.err.println("FILE_NAME not in env. Exiting...");
             System.exit(1);
         }
         return file;
