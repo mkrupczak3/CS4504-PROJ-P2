@@ -6,12 +6,15 @@ public class Peer
 {
     static AtomicInteger sharedInt; //closes running loop when value == 0
 
+    //Variables for data
+    public static SynchronizedRollingAverage lookupAverage = new SynchronizedRollingAverage();
+    public static SynchronizedRollingAverage messageSizeAverage = new SynchronizedRollingAverage();
+    public static SynchronizedRollingAverage peerCycleTime = new SynchronizedRollingAverage();
 
     public static void main(String[] args)
     {
         //Initialization with default values here
         DatagramPacket myAnnouncementPacket;
-        String routerAddress = "172.23.0.6"; //to be filled in later
         String routerName = null;
         int routerPortNum = 4444;
         String myAnnouncementString; //holds local addressing information
@@ -21,12 +24,7 @@ public class Peer
         String fileName = null;
 
         //adding Environment Variables if present
-        String temp = getRouterIPFromEnv();
-        if(temp != null) //router address
-        {
-            routerAddress = temp;
-            temp = null;
-        }
+        String temp;
         temp = getTargetFromEnv();
         if(temp != null) //target node's device name
         {
@@ -56,7 +54,7 @@ public class Peer
 
             //sending packet over UDP socket
             bufferMessage = myAnnouncementString.getBytes();
-            myAnnouncementPacket = new DatagramPacket(bufferMessage, bufferMessage.length, InetAddress.getByName(routerAddress), routerPortNum);
+            myAnnouncementPacket = new DatagramPacket(bufferMessage, bufferMessage.length, InetAddress.getByName(routerName), routerPortNum);
             announceSendSocket.send(myAnnouncementPacket);
         } catch (SocketException e) {
             System.err.println("Could not build datagram socket on port " + routerPortNum + "\n" + e.getMessage());
@@ -115,6 +113,11 @@ public class Peer
             }
         }
 
+        //printing variable data
+        System.out.println("Average lookup time for router: " + lookupAverage.getAverage() + "\n" +
+                "Average message size: " + messageSizeAverage.getAverage() + "\n" +
+                "Average cycle time for peer communication: " + peerCycleTime.getAverage());
+
         //Close server socket
         try{
             if(listeningSocket != null)
@@ -125,25 +128,6 @@ public class Peer
         {
             System.err.println("Failed to close Peer ServerSocket");
         }
-    }
-
-    /**
-     * fetches the router IP address
-     */
-    private static String getRouterIPFromEnv()
-    {
-        String routerIP = null;
-        try {
-            routerIP = System.getenv("ROUTER_IPADDRESS"); // get peer's router IP Address from bash environment variable
-        } catch (SecurityException se) {
-            System.err.println("Process failed to obtain needed Env Variable due to security policy. Exiting...");
-            System.exit(1);
-        }
-        if (routerIP == null || routerIP.equals("")) {
-            System.err.println("Router IP address was never provided. Exiting...");
-            System.exit(1);
-        }
-        return routerIP;
     }
 
     private static String getRouterHostNameFromEnv()
@@ -196,5 +180,18 @@ public class Peer
             System.exit(1);
         }
         return file;
+    }
+    //SynchronizedRollingAverage copied from P1 of project
+    static class SynchronizedRollingAverage {
+        private double avg = 0;
+        private long count = 0;
+
+        public synchronized void addValue(double value) {
+            avg = ((avg * count) + value) / (++count);
+        }
+
+        public synchronized double getAverage() {
+            return avg;
+        }
     }
 }

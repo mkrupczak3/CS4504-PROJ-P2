@@ -9,6 +9,7 @@ import java.util.Base64;
 
 public class ClientThread extends Thread
 {
+
     private String peerTargetName; //target peer
     private String routerName;
     private String fileName;
@@ -29,6 +30,7 @@ public class ClientThread extends Thread
         BufferedReader in = null;
         String targetIP = null;
         Socket toPeerSocket;
+        long routerLookupTimeStart = System.nanoTime();
 
         //Connect to router and find target peer's IP
         try(Socket toRouterSocket = new Socket(routerName, routerPortNum))
@@ -39,6 +41,10 @@ public class ClientThread extends Thread
             out.println(toRouterMessage);
             out.println(peerTargetName);
             targetIP = in.readLine();
+
+            //disconnect from router
+            out.close();
+            in.close();
         }
         catch(UnknownHostException e){
             System.err.println("Could not find " + routerName + "\n" + e.getMessage());
@@ -48,7 +54,12 @@ public class ClientThread extends Thread
             System.err.println("Failed to connect\n" + e.getMessage());
             System.exit(1);
         }
-        
+
+        //Router lookup data
+        long routerLookupTimeEnd = System.nanoTime();
+        long timeDifference = routerLookupTimeStart-routerLookupTimeEnd;
+        Peer.lookupAverage.addValue(timeDifference);
+
         //Connect to targetPeer
         try{
             toPeerSocket = new Socket(targetIP, peerPortNum);
@@ -63,6 +74,8 @@ public class ClientThread extends Thread
             System.err.println("Failed to connect\n" + e.getMessage());
             System.exit(1);
         }
+        //send the fileName
+        out.print(fileName);
 
         // converting file into bytes which can be sent to targetPeer
         File sentFile = new File(fileName);
@@ -75,11 +88,7 @@ public class ClientThread extends Thread
             System.exit(1);
         }
         String base64Payload = new String(Base64.getEncoder().encodeToString(fileByteArray));
+        long peerCycleTimeStart = System.nanoTime();
         out.println(base64Payload); //sending base64 payload to target Peer
-        
-
-
-
-
     }
 }
