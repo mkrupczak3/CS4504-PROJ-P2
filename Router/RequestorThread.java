@@ -38,10 +38,13 @@ public class RequestorThread extends Thread {
 
         } catch (IOException e) {
             System.err.println("RequestorThread not able to use incoming socket.");
-
         } finally {
-            in.close();
-            requestorReturnLine.close();
+            try {
+                in.close();
+                requestorReturnLine.close();
+            } catch (IOException e) {
+                System.err.println("Failed to close socket.");
+            }
             System.exit(1);
         }
     }
