@@ -1,0 +1,35 @@
+version: '3'
+networks:
+  pdc-net: # Docker-only overlay network
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+  #bridge-net: # Only needed if need to talk to external network
+  #  driver: bridge
+  #  ipam:
+  #    config:
+  #      - subnet: 172.24.0.0/16
+
+services:
+  router1:
+    environment:
+      - CLIENT_LISTEN_PORT=5555
+      - COUNTERPARTY_LISTEN_PORT=6666
+      - COUNTERPARTY_HOST=172.23.0.6
+      - COUNTERPARTY_HOST_PORT=6666
+    build: ./Router
+    networks:
+      pdc-net:
+         ipv4_address: 172.23.0.5
+  router2:
+    environment:
+      - CLIENT_LISTEN_PORT=5555
+      - COUNTERPARTY_LISTEN_PORT=6666
+      - COUNTERPARTY_HOST=172.23.0.5
+      - COUNTERPARTY_HOST_PORT=6666
+    build: ./Router
+    networks:
+      pdc-net:
+         ipv4_address: 172.23.0.6
+
+
