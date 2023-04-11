@@ -11,13 +11,15 @@ public class Peer
     public static SynchronizedRollingAverage lookupAverage = new SynchronizedRollingAverage();
     public static SynchronizedRollingAverage messageSizeAverage = new SynchronizedRollingAverage();
     public static SynchronizedRollingAverage peerCycleTime = new SynchronizedRollingAverage();
+    private static String routerName;
+    private static int routerPortNum;
 
     public static void main(String[] args)
     {
         //Initialization with default values here
         DatagramPacket myAnnouncementPacket;
-        String routerName = null;
-        int routerPortNum = 4444;
+        routerName = null;
+        routerPortNum = 4444;
         String myAnnouncementString; //holds local addressing information
         byte[] bufferMessage;
         String targetName = null;
@@ -119,10 +121,22 @@ public class Peer
             }
         }
 
-        //printing variable data
-        System.out.println("Average lookup time for router: " + lookupAverage.getAverage() + "\n" +
-                "Average message size: " + messageSizeAverage.getAverage() + "\n" +
-                "Average cycle time for peer communication: " + peerCycleTime.getAverage());
+        //printing variable data to router
+        try (Socket sock = new Socket(routerName, routerPortNum)) {
+            PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+
+            out.println("ADDDATA");
+            out.println(InetAddress.getLocalHost().getHostName());
+            out.println(lookupAverage.getAverage());
+            out.println(messageSizeAverage.getAverage());
+            out.println(peerCycleTime.getAverage());
+            in.readLine(); // wait for ok
+        }
+        catch(IOException e)
+        {
+            System.err.print(e.getMessage());
+        }
 
         //Close server socket
         try{
