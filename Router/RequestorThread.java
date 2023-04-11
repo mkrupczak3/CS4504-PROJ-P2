@@ -51,22 +51,38 @@ public class RequestorThread extends Thread {
                     String requestor_name = in.readLine();
                     if (requestor_name == null) {
                         System.err.println(String.format("Peer %s closed connection.",
-                                                         addr.getHostAddress()));
+                                addr.getHostAddress()));
                         return;
                     }
                     String target_name = in.readLine();
                     if (target_name == null) {
                         System.err.println(String.format("Peer %s closed connection.",
-                                                         addr.getHostAddress()));
+                                addr.getHostAddress()));
                         return;
                     }
                     System.out.println(String.format("Requestor %s is asking for target %s",
-                                                     requestor_name, target_name));
-                    
+                            requestor_name, target_name));
+
                     InetAddress lookup = router_.getPeerIp(target_name);
                     String response = lookup == null ? "404NOTFOUND" : lookup.getHostAddress();
-                    System.out.println(String.format("Response to %s: %s", requestor_name, response)); 
+                    System.out.println(String.format("Response to %s: %s", requestor_name, response));
                     out.println(response);
+                }else if (command.equals("ADDDATA"))    {
+                    String requester_name = in.readLine();
+                    double[] data = new double[3]; //0 = Router lookup time, 1 = Message size in bytes, 2 = peer cycle time
+                    for(int i = 0; i < 3; i++)
+                    {
+                        String dataString = in.readLine();
+                        try
+                        {
+                            data[i] = Double.parseDouble(dataString);
+                        }
+                        catch (NumberFormatException e)
+                        {
+                            System.err.println("Failed to parse data from Peer\n" + e.getMessage());
+                        }
+                    }
+                    out.println("Parse Successful");
                 } else {
                     System.err.println(String.format("Unexpected command from peer %s: %s",
                                                      addr.getHostAddress(), command));
