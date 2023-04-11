@@ -1,108 +1,190 @@
 import java.util.HashMap;
 import java.io.*;
 import java.net.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Router {
+    private ConcurrentHashMap<String, InetAddress> myPeers_ = new ConcurrentHashMap<String, InetAddress>();
 
-    public static void main(String[] args) throws IOException {
-        String otherRouterHostname = getOtherHostnameFromEnv();
+    private int requesterListenPort;
+    private int counterpartyListenPort;
+    private String counterpartyHost;
+    private int counterpartyPort;
 
-        int announcementPort = 4444;
-        DatagramSocket announcementRecvSocket = null; // UDP socket to collect startup announcement from each of my peers
+    private ServerSocket requesterListenSocket_;
+    private ServerSocket counterpartyListenSocket_;
+    private Socket counterpartySocket_;
+
+
+    public Router(int requesterListenPort, int counterpartyListenPort,
+                  String counterpartyHost, int counterpartyPort) {
+        this.requesterListenPort = requesterListenPort;
+        this.counterpartyListenPort = counterpartyListenPort;
+        this.counterpartyHost = counterpartyHost;
+        this.counterpartyPort = counterpartyPort;
+    }
+
+
+    // doesn't have to be synchronized because myPeers_ is a ConcurrentHashMap 
+    public void addPeer(String name, InetAddress addr) {
+        myPeers_.put(name, addr);
+    }
+
+    // doesn't have to be synchronized because myPeers_ is a ConcurrentHashMap 
+    public InetAddress getLocalPeerIp(String key) {
+        return myPeers_.get(key);
+    }
+
+    public synchronized InetAddress getCounterpartyPeerIp(String key) {
         try {
-            announcementRecvSocket = new DatagramSocket(announcementPort);
-        } catch (IOException e) {
-            System.err.println("Could not listen for announcements on port: "+announcementPort+"/udp.");
-            System.exit(1);
-        }
-        byte[] buffer = new byte[1024];
-        DatagramPacket incomingPacket = new DatagramPacket(buffer, buffer.length);
-
-        int requestorPort = 5555;
-        ServerSocket requestorSocket = null;
-        try {
-            requestorSocket = new ServerSocket(requestorPort);
-        } catch (IOException e ) {
-            System.err.println("Could not listen for requests on port: "+requestorPort+".");
-            System.exit(1);
-        }
-
-        int counterpartyPort = 6666;
-        ServerSocket counterpartySocket = null;
-        try {
-            counterpartySocket = new ServerSocket(counterpartyPort);
-        } catch (IOException e ) {
-            System.err.println("Could not listen for requests from counterparty: "+counterpartyPort+".");
-            System.exit(1);
-        }
-
-        // Lookup map, key is a String for hostname, value is its IP
-        //     note, routingMap will only contain peers owned by this router and not the counterparty Router
-        HashMap<String, InetAddress> routingMap = new HashMap<String, InetAddress>();
-
-        Socket incomingSocket = null;
-        InterRouterThread irt = null;
-        boolean isIRTOpen = false;
-        boolean running = true;
-        while (running == true) {
-            try {
-                announcementRecvSocket.receive(incomingPacket); // Receive incoming UDP announcement packet
-                String message = new String(incomingPacket.getData(), 0, incomingPacket.getLength());
-                String[] parts = message.split("\\s+"); // Split the message by whitespace
-                parts[0] = parts[0].trim();
-                parts[1] = parts[1].trim();
-                System.out.println(String.format("Peer %s announced its presence with IP: %s", parts[0], parts[1]));
-                String proclaimerName = parts[0];
-                InetAddress proclaimerIP = InetAddress.getByName(parts[1]);
-                routingMap.put(proclaimerName, proclaimerIP); // add the name and ip to routingMap
-            } catch (SocketTimeoutException e) {
-                // Do nothing, just continue the loop
-                assert(true);
+            PrintWriter out = new PrintWriter(counterpartySocket_.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(counterpartySocket_.getInputStream()));
+            
+            out.println(key);
+            String response = in.readLine();
+            if (response.equals("404NOTFOUND")) {
+                return null;
             }
 
-            if (!isIRTOpen) {
-                try {
-                    incomingSocket = counterpartySocket.accept(); // accept an incoming TCP connection from the other Router relaying a request from its Peer
-                    irt = new InterRouterThread(routingMap, incomingSocket, otherRouterHostname);
-                    irt.start();
-                    isIRTOpen = true;
-                    System.out.println("Router recieved request from counterparty Router: " + incomingSocket.getInetAddress().getHostAddress());
+            return InetAddress.getByName(response);
+        } catch (IOException e) {
+            System.err.println("I/O error: " + e.getMessage());
+            e.printStackTrace();
+            close();
+            System.exit(1);
+        }
+
+        return null; // this shouldn't be reached
+    }
+
+    public InetAddress getPeerIp(String key) {
+        InetAddress addr = getLocalPeerIp(key);
+        if (addr != null) {
+            return addr;
+        }
+
+        // couldn't find peer in our list, try counterparty
+        addr = getCounterpartyPeerIp(key);
+        return addr; // may be null
+    }
+
+
+    public void run() throws InterruptedException {
+        try {
+            requesterListenSocket_ = new ServerSocket(requesterListenPort);
+        } catch (IOException e) {
+            System.err.println("Could not listen for requesters on port "+requesterListenPort+".");
+            close();
+            System.exit(1);
+        }
+
+        try {
+            counterpartyListenSocket_ = new ServerSocket(counterpartyListenPort);
+        } catch (IOException e ) {
+            System.err.println("Could not listen for counterparty on port: "+counterpartyListenPort+".");
+            close();
+            System.exit(1);
+        }
+
+        Thread counterpartyListenThread = new Thread() {
+            public void run() {
+                try (Socket s = counterpartyListenSocket_.accept()) {
+                    String hostAddr = s.getInetAddress().getHostAddress();
+                    System.out.println(String.format("Got connection from counterparty %s.", hostAddr));
+
+                    PrintWriter out = new PrintWriter(s.getOutputStream(), true);
+                    BufferedReader in = new BufferedReader(
+                        new InputStreamReader(s.getInputStream()));
+
+                    while (true) {
+                        String request = in.readLine();
+                        if (request == null) {
+                            System.out.println("Counterparty closed connection, exiting.");
+                            close();
+                            System.exit(0);
+                        };
+                        System.out.println("Request from counterparty: " + request);
+
+                        InetAddress addr = getLocalPeerIp(request);
+                        String response = addr == null ? "404NOTFOUND" : addr.getHostAddress();
+                        System.out.println("Response: " + response);
+                        out.println(response);
+                    }
                 } catch (IOException e) {
-                    System.err.println("Counterparty Router failed to connect to this Router.");
+                    System.err.println("Connection error with counterparty: " + e.getMessage());
+                    e.printStackTrace();
+                    close();
                     System.exit(1);
                 }
             }
+        };
 
-            try {
-                if (!isIRTOpen) { continue; } // wait to accept Peer connection until IRT is open
-                incomingSocket = requestorSocket.accept(); // accept an incoming TCP connection from a requestor Peer
-                RequestorThread r = new RequestorThread(routingMap, incomingSocket, irt);
-                r.start();
-                System.out.println("Router recieved request from Peer: " + incomingSocket.getInetAddress().getHostAddress());
-            } catch (IOException e) {
-                System.err.println("Peer failed to connect to this Router.");
-                System.exit(1);
+        Thread requesterListenThread = new Thread() {
+            public void run() {
+                while (true) {
+                    try {
+                        Socket s = requesterListenSocket_.accept();
+                        RequestorThread t = new RequestorThread(s, Router.this);
+                        t.start();
+                    } catch (IOException e) {
+                        System.err.println("Connection error with requester: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                }
             }
+        };
 
+        counterpartyListenThread.start();
+        System.out.println(String.format("Attempting to connect to counterparty at %s:%s.",
+                                         counterpartyHost, counterpartyPort));
+        int counter = 0;
+        while (true) {
+            try {
+                counterpartySocket_ = new Socket(counterpartyHost, counterpartyPort);
+
+                System.out.println(String.format("Connection to counterparty %s:%s succeeded!",
+                                                 counterpartyHost, counterpartyPort));
+                break;
+            } catch (Exception e) {
+                counter++;
+                System.out.println(String.format("Connection to counterparty %s:%s failed, trying again... (%d)",
+                                                 counterpartyHost, counterpartyPort, counter));
+                Thread.sleep(1000);
+            }
         }
-        announcementRecvSocket.close();
-        requestorSocket.close();
-        counterpartySocket.close();
+
+        requesterListenThread.start();
+
+        counterpartyListenThread.join();
+        requesterListenThread.join();
     }
 
-    public static String getOtherHostnameFromEnv() {
-        String otherRouterHostname = null;
-        try {
-            otherRouterHostname = System.getenv("COUNTERPARTY_HOSTNAME"); // get the other Router's hostname from bash environment variable
-        } catch (SecurityException se) {
-            System.err.println("Process failed to obtain needed Env Variable due to security policy. Exiting...");
-            System.exit(1);
-        }
-        if (otherRouterHostname == null || otherRouterHostname.equals("")) {
-            System.err.println("Counterparty Hostname was never provided. Exiting...");
-            System.exit(1);
+    public void close() {
+        if (requesterListenSocket_ != null) {
+            try {
+                requesterListenSocket_.close();
+            } catch (IOException e) {
+                System.err.println("Error closing requesterListenSocket_: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
 
-        return otherRouterHostname;
+        if (counterpartyListenSocket_ != null) {
+            try {
+                counterpartyListenSocket_.close();
+            } catch (IOException e) {
+                System.err.println("Error closing counterpartyListenSocket_: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        if (counterpartySocket_ != null) {
+            try {
+                counterpartySocket_.close();
+            } catch (IOException e) {
+                System.err.println("Error closing counterpartySocket_: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 }

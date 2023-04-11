@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.lang.Thread;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Peer
@@ -10,13 +11,15 @@ public class Peer
     public static SynchronizedRollingAverage lookupAverage = new SynchronizedRollingAverage();
     public static SynchronizedRollingAverage messageSizeAverage = new SynchronizedRollingAverage();
     public static SynchronizedRollingAverage peerCycleTime = new SynchronizedRollingAverage();
+    private static String routerName;
+    private static int routerPortNum;
 
     public static void main(String[] args)
     {
         //Initialization with default values here
         DatagramPacket myAnnouncementPacket;
-        String routerName = null;
-        int routerPortNum = 4444;
+        routerName = null;
+        routerPortNum = 4444;
         String myAnnouncementString; //holds local addressing information
         byte[] bufferMessage;
         String targetName = null;
@@ -26,7 +29,7 @@ public class Peer
         //adding Environment Variables if present
         String temp;
         temp = getTargetFromEnv();
-        if(temp != null) //target node's device name
+        if(temp != null && !temp.equals("none")) //target node's device name
         {
             targetName = temp;
             isClient = true;
@@ -46,22 +49,27 @@ public class Peer
         }
 
         //Send local addressing data to the router
-        try (DatagramSocket announceSendSocket = new DatagramSocket(routerPortNum)) //try with resources
-        {
-            //Setting up announcement string message
-            myAnnouncementString = InetAddress.getLocalHost().getHostName(); //name
-            myAnnouncementString += " " + InetAddress.getLocalHost().getHostAddress(); //IP address
+        try (Socket sock = new Socket(routerName, routerPortNum)) {
+            PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
 
-            //sending packet over UDP socket
-            bufferMessage = myAnnouncementString.getBytes();
-            myAnnouncementPacket = new DatagramPacket(bufferMessage, bufferMessage.length, InetAddress.getByName(routerName), routerPortNum);
-            announceSendSocket.send(myAnnouncementPacket);
+            out.println("ANNOUNCE");
+            out.println(InetAddress.getLocalHost().getHostName());
+            in.readLine(); // wait for ok
         } catch (SocketException e) {
             System.err.println("Could not build datagram socket on port " + routerPortNum + "\n" + e.getMessage());
         } catch (UnknownHostException e) {
             System.err.println("Failed to find Local Address\n" + e.getMessage());
         } catch (IOException e) {
             System.err.println("Failed to send packet\n" + e.getMessage());
+        }
+
+        System.out.println("Sent announcment, waiting...");
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            System.err.println("Interrupted, exiting.");
+            System.exit(1);
         }
 
         //If this peer is a client, starts client thread. Then, executes server method
@@ -113,10 +121,22 @@ public class Peer
             }
         }
 
-        //printing variable data
-        System.out.println("Average lookup time for router: " + lookupAverage.getAverage() + "\n" +
-                "Average message size: " + messageSizeAverage.getAverage() + "\n" +
-                "Average cycle time for peer communication: " + peerCycleTime.getAverage());
+        //printing variable data to router
+        try (Socket sock = new Socket(routerName, routerPortNum)) {
+            PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+
+            out.println("ADDDATA");
+            out.println(InetAddress.getLocalHost().getHostName());
+            out.println(lookupAverage.getAverage());
+            out.println(messageSizeAverage.getAverage());
+            out.println(peerCycleTime.getAverage());
+            in.readLine(); // wait for ok
+        }
+        catch(IOException e)
+        {
+            System.err.print(e.getMessage());
+        }
 
         //Close server socket
         try{
@@ -140,7 +160,7 @@ public class Peer
             System.exit(1);
         }
         if (routerName == null || routerName.equals("")) {
-            System.err.println("Router IP address was never provided. Exiting...");
+            System.err.println("ROUTER_HOSTNAME not in env. Exiting...");
             System.exit(1);
         }
         return routerName;
@@ -159,7 +179,7 @@ public class Peer
             System.exit(1);
         }
         if (target == null || target.equals("")) {
-            System.err.println("target name was never provided. Exiting...");
+            System.err.println("TARGET_NAME not in env. Exiting...");
             System.exit(1);
         }
         return target;
@@ -176,7 +196,7 @@ public class Peer
             System.exit(1);
         }
         if (file == null || file.equals("")) {
-            System.err.println("target name was never provided. Exiting...");
+            System.err.println("FILE_NAME not in env. Exiting...");
             System.exit(1);
         }
         return file;
