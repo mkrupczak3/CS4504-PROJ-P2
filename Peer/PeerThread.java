@@ -3,7 +3,6 @@ import java.net.*;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicInteger;
 
-
 public class PeerThread extends Thread
 {
     private Socket outSocket;
@@ -30,12 +29,11 @@ public class PeerThread extends Thread
             fileName = in.readLine();
         } catch (IOException e) {
             System.err.println("Failed to create Writer/Reader\n" + e.getMessage());
-            sharedInt.getAndDecrement();
-            return;
+            e.printStackTrace();
+            System.exit(1); //Is This needed?
         }
         System.out.println("Connection is successful. Received file name: " + fileName);
-        String returnMessage  = "Successfully received and decoded file";
-
+            
         //receiving the message from ClientThread and converting message from base64 text to original bytes
         try (FileOutputStream fos = new FileOutputStream(fileName)) {
             String base64Payload = in.readLine();
@@ -44,21 +42,28 @@ public class PeerThread extends Thread
 
         } catch (IOException e) {
             System.err.println("IO error occurred when trying to dump to file: " + e.getMessage());
-            returnMessage = "Failed to decode file";
+            System.exit(1);
         }
+        out.println("ok");
 
         //Closing statements
-        out.print(returnMessage);
-        System.out.print("Communication finished. Closing sockets...");
         try
         {
-            out.close();
-            in.close();
+            if(out != null)
+            {
+                out.close();
+            }
+            if(in != null)
+            {
+                in.close();
+            }
         }
         catch(IOException e)
         {
             System.err.println("Failed  to close Reader/Writer\n" + e.getMessage());
         }
         sharedInt.getAndDecrement(); //tells parent class Peer to stop listening
+        
     }
+    
 }
