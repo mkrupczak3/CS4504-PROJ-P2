@@ -4,11 +4,6 @@ networks:
     ipam:
       config:
         - subnet: 172.23.0.0/16
-  #bridge-net: # Only needed if need to talk to external network
-  #  driver: bridge
-  #  ipam:
-  #    config:
-  #      - subnet: 172.24.0.0/16
 
 services:
   router1:
@@ -17,7 +12,7 @@ services:
       - COUNTERPARTY_LISTEN_PORT=6666
       - COUNTERPARTY_HOST=172.23.0.6
       - COUNTERPARTY_HOST_PORT=6666
-    build: ./Router
+    build: ../Router
     networks:
       pdc-net:
          ipv4_address: 172.23.0.5
@@ -27,9 +22,7 @@ services:
       - COUNTERPARTY_LISTEN_PORT=6666
       - COUNTERPARTY_HOST=172.23.0.5
       - COUNTERPARTY_HOST_PORT=6666
-    build: ./Router
+    build: ../Router
     networks:
       pdc-net:
          ipv4_address: 172.23.0.6
-
-
