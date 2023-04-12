@@ -7,7 +7,7 @@ networks:
 
 services:
   router1:
-    container_name: router1
+    hostname: router1
     environment:
       - CLIENT_LISTEN_PORT=5555
       - COUNTERPARTY_LISTEN_PORT=6666
@@ -18,7 +18,7 @@ services:
       pdc-net:
          ipv4_address: 172.23.0.5
   router2:
-    container_name: router2
+    hostname: router2
     environment:
       - CLIENT_LISTEN_PORT=5555
       - COUNTERPARTY_LISTEN_PORT=6666
@@ -29,9 +29,9 @@ services:
       pdc-net:
          ipv4_address: 172.23.0.6
   p01a:
-    container_name: p01a
+    hostname: p01a
     environment:
-      - ROUTER_HOSTNAME=router1
+      - ROUTER_HOSTNAME=172.23.0.5
       - FILE_NAME='shia_surprise_94_kbps_240p.mp4'
       - TARGET_NAME=p01b
     build: ../Peer
@@ -39,16 +39,27 @@ services:
       - type: bind
         source: ./test-files/MP4/shia_surprise_94_kbps_240p.mp4
         target: /app/shia_surprise_94_kbps_240p.mp4
+    networks:
+      - pdc-net
+    depends_on:
+      - router1
+      - router2
+        
 
   p01b:
-    container_name: p01b
+    hostname: p01b
     environment:
-      - ROUTER_HOSTNAME=router2
+      - ROUTER_HOSTNAME=172.23.0.6
     build: ../Peer
     volumes:
       - type: volume
         source: p01b
         target: /app
+    networks:
+      - pdc-net
+    depends_on:
+      - router1
+      - router2
 
 volumes:
   p01b:
