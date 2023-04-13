@@ -3,7 +3,9 @@ import java.io.*;
 import java.net.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 public class Router {
+
     private ConcurrentHashMap<String, InetAddress> myPeers_ = new ConcurrentHashMap<String, InetAddress>();
 
     private int requesterListenPort;
@@ -14,6 +16,9 @@ public class Router {
     private ServerSocket requesterListenSocket_;
     private ServerSocket counterpartyListenSocket_;
     private Socket counterpartySocket_;
+    public static SynchronizedRollingAverage lookupAverage = new SynchronizedRollingAverage();
+    public static SynchronizedRollingAverage messageSizeAverage = new SynchronizedRollingAverage();
+    public static SynchronizedRollingAverage peerCycleTime = new SynchronizedRollingAverage();
 
 
     public Router(int requesterListenPort, int counterpartyListenPort,
@@ -185,6 +190,20 @@ public class Router {
                 System.err.println("Error closing counterpartySocket_: " + e.getMessage());
                 e.printStackTrace();
             }
+        }
+    }
+
+    //SynchronizedRollingAverage copied from P1 of project
+    static class SynchronizedRollingAverage {
+        private double avg = 0;
+        private long count = 0;
+
+        public synchronized void addValue(double value) {
+            avg = ((avg * count) + value) / (++count);
+        }
+
+        public synchronized double getAverage() {
+            return avg;
         }
     }
 }

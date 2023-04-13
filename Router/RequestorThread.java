@@ -83,7 +83,10 @@ public class RequestorThread extends Thread {
                             System.err.println("Failed to parse data from Peer\n" + e.getMessage());
                         }
                     }
-                    out.println("Parse Successful");
+                    out.println("Parse Successful. Averaging Data");
+                    Router.lookupAverage.addValue(data[0]);
+                    Router.messageSizeAverage.addValue(data[1]);
+                    Router.peerCycleTime.addValue(data[2]);
                 } else {
                     System.err.println(String.format("Unexpected command from peer %s: %s",
                                                      addr.getHostAddress(), command));
