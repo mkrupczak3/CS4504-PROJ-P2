@@ -30,6 +30,15 @@ public class ClientThread extends Thread
         BufferedReader in = null;
         String targetIP = null;
         Socket toPeerSocket;
+        
+        System.out.println("Waiting for all nodes to announce");
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            System.err.println("Interrupted, exiting.");
+            System.exit(1);
+        }
+
         long routerLookupTimeStart = System.nanoTime();
 
         //Connect to router and find target peer's IP

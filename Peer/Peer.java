@@ -65,13 +65,8 @@ public class Peer
             System.err.println("Failed to send packet\n" + e.getMessage());
         }
 
-        System.out.println("Sent announcment, waiting...");
-        try {
-            Thread.sleep(4000);
-        } catch (InterruptedException e) {
-            System.err.println("Interrupted, exiting.");
-            System.exit(1);
-        }
+        System.out.println("Sent announcment");
+        
 
         //If this peer is a client, starts client thread. Then, executes server method
         int peerPortNumber = 5556; //port for peer to peer communication
