@@ -22,16 +22,16 @@ public class Peer
         routerPortNum = 5555;
         String myAnnouncementString; //holds local addressing information
         byte[] bufferMessage;
-        String targetName = null;
+        String[] targetNames = null; //array of target host names
         boolean isClient = false; //will affect method later
         String fileName = null;
 
         //adding Environment Variables if present
         String temp;
         temp = getTargetFromEnv();
-        if(temp != null && !temp.equals("none")) //target node's device name
+        if(temp != null) //target node's device name
         {
-            targetName = temp;
+            targetNames=temp.split(",");
             isClient = true;
             temp = null;
         }
@@ -72,9 +72,11 @@ public class Peer
         int peerPortNumber = 5556; //port for peer to peer communication
         int routerRequestPort = 5555;
         if(isClient)
-        {
-            ClientThread client = new ClientThread(targetName, routerName, peerPortNumber, routerRequestPort, fileName);
-            client.start();
+        {   
+            for(String targetName: targetNames){
+                ClientThread client = new ClientThread(targetName, routerName, peerPortNumber, routerRequestPort, fileName);
+                client.start();
+            }
         }
         actAsServer(peerPortNumber); //all peers act as a server
     }

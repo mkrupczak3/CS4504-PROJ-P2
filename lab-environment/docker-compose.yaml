@@ -32,8 +32,8 @@ services:
     hostname: p01a
     environment:
       - ROUTER_HOSTNAME=172.23.0.5
-      - FILE_NAME='/app/shia_surprise_94_kbps_240p.mp4'
-      - TARGET_NAME=p01b
+      - FILE_NAME=/app/shia_surprise_94_kbps_240p.mp4
+      - TARGET_NAME=p01b,p02b
     build: ../Peer
     volumes:
       - type: bind
@@ -60,6 +60,21 @@ services:
     depends_on:
       - router1
       - router2
+  p02b:
+    hostname: p02b
+    environment:
+      - ROUTER_HOSTNAME=172.23.0.6
+    build: ../Peer
+    volumes:
+      - type: volume
+        source: p02b
+        target: /app
+    networks:
+      - pdc-net
+    depends_on:
+      - router1
+      - router2
 
 volumes:
   p01b:
+  p02b:
