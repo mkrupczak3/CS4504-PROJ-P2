@@ -32,13 +32,13 @@ services:
     hostname: p01a
     environment:
       - ROUTER_HOSTNAME=172.23.0.5
-      - FILE_NAME=/app/shia_surprise_94_kbps_240p.mp4
+      - FILE_NAME=/app/never_gonna_hit_those_notes_pcm_u8.wav
       - TARGET_NAME=p01b
     build: ../Peer
     volumes:
       - type: bind
-        source: ./test-files/MP4/shia_surprise_94_kbps_240p.mp4
-        target: /app/shia_surprise_94_kbps_240p.mp4
+        source: ./test-files/WAV/never_gonna_hit_those_notes_pcm_u8.wav
+        target: /app/never_gonna_hit_those_notes_pcm_u8.wav
     networks:
       - pdc-net
     depends_on:
