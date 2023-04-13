@@ -30,6 +30,15 @@ public class ClientThread extends Thread
         BufferedReader in = null;
         String targetIP = null;
         Socket toPeerSocket;
+        
+        System.out.println("Waiting for all nodes to announce");
+        try {
+            Thread.sleep(4000);
+        } catch (InterruptedException e) {
+            System.err.println("Interrupted, exiting.");
+            System.exit(1);
+        }
+
         long routerLookupTimeStart = System.nanoTime();
 
         //Connect to router and find target peer's IP
@@ -70,7 +79,7 @@ public class ClientThread extends Thread
         //Router lookup data
         long routerLookupTimeEnd = System.nanoTime();
         long timeDifference = routerLookupTimeStart-routerLookupTimeEnd;
-        Peer.lookupAverage.addValue(timeDifference);
+        
 
         //Connect to targetPeer
         try{
@@ -87,12 +96,12 @@ public class ClientThread extends Thread
             return;
         }
         //send the fileName
-        out.print(fileName);
+        out.println(fileName);
 
         // converting file into bytes which can be sent to targetPeer
         File sentFile = new File(fileName);
         byte[] fileByteArray = new byte[(int) sentFile.length()];
-        Peer.messageSizeAverage.addValue(fileByteArray.length);
+        
         try {
             FileInputStream fileBytes = new FileInputStream(sentFile);
             fileBytes.read(fileByteArray);
@@ -106,7 +115,7 @@ public class ClientThread extends Thread
         //receiving reply
         try {
             String reply = in.readLine();
-            System.out.print(peerTargetName + " responded: " + reply);
+            System.out.println(peerTargetName + " responded: " + reply);
 
             System.out.print("Communication finished. Closing sockets...");
             out.close();
@@ -117,6 +126,21 @@ public class ClientThread extends Thread
 
         long peerCycleTimeEnd = System.nanoTime();
         long cycleTime = peerCycleTimeStart - peerCycleTimeEnd;
-        Peer.peerCycleTime.addValue(cycleTime);
+        //printing variable data to router
+        try (Socket sock = new Socket(routerName, routerPortNum)) {
+            PrintWriter dataOut = new PrintWriter(sock.getOutputStream(), true);
+            BufferedReader dataIn = new BufferedReader(new InputStreamReader(sock.getInputStream()));
+
+            dataOut.println("ADDDATA");
+            dataOut.println(InetAddress.getLocalHost().getHostName());
+            dataOut.println(timeDifference);
+            dataOut.println(fileByteArray.length);
+            dataOut.println(cycleTime);
+            dataIn.readLine(); // wait for ok
+        }
+        catch(IOException e)
+        {
+            System.err.print(e.getMessage());
+        }
     }
 }

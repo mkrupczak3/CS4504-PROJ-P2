@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Peer
 {
-    static AtomicInteger sharedInt; //closes running loop when value == 0
+    static AtomicInteger sharedInt = new AtomicInteger(); //closes running loop when value == 0
 
     //Variables for data
     public static SynchronizedRollingAverage lookupAverage = new SynchronizedRollingAverage();
@@ -19,7 +19,7 @@ public class Peer
         //Initialization with default values here
         DatagramPacket myAnnouncementPacket;
         routerName = null;
-        routerPortNum = 4444;
+        routerPortNum = 5555;
         String myAnnouncementString; //holds local addressing information
         byte[] bufferMessage;
         String targetName = null;
@@ -56,6 +56,7 @@ public class Peer
             out.println("ANNOUNCE");
             out.println(InetAddress.getLocalHost().getHostName());
             in.readLine(); // wait for ok
+            System.out.println("Announced as hostname "+InetAddress.getLocalHost().getHostName()+" to router.");
         } catch (SocketException e) {
             System.err.println("Could not build datagram socket on port " + routerPortNum + "\n" + e.getMessage());
         } catch (UnknownHostException e) {
@@ -64,13 +65,8 @@ public class Peer
             System.err.println("Failed to send packet\n" + e.getMessage());
         }
 
-        System.out.println("Sent announcment, waiting...");
-        try {
-            Thread.sleep(4000);
-        } catch (InterruptedException e) {
-            System.err.println("Interrupted, exiting.");
-            System.exit(1);
-        }
+        System.out.println("Sent announcment");
+        
 
         //If this peer is a client, starts client thread. Then, executes server method
         int peerPortNumber = 5556; //port for peer to peer communication
@@ -106,8 +102,9 @@ public class Peer
         //accepts requests and runs until all child threads end their processes
         while(isRunning)
         {
-            try(Socket tempSocket = listeningSocket.accept()) //try with resources
+            try //try with resources
             {
+                Socket tempSocket = listeningSocket.accept();
                 PeerThread temp = new PeerThread(tempSocket, sharedInt);
                 temp.start();
                 sharedInt.getAndIncrement();
@@ -121,22 +118,7 @@ public class Peer
             }
         }
 
-        //printing variable data to router
-        try (Socket sock = new Socket(routerName, routerPortNum)) {
-            PrintWriter out = new PrintWriter(sock.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(sock.getInputStream()));
-
-            out.println("ADDDATA");
-            out.println(InetAddress.getLocalHost().getHostName());
-            out.println(lookupAverage.getAverage());
-            out.println(messageSizeAverage.getAverage());
-            out.println(peerCycleTime.getAverage());
-            in.readLine(); // wait for ok
-        }
-        catch(IOException e)
-        {
-            System.err.print(e.getMessage());
-        }
+        
 
         //Close server socket
         try{
@@ -179,8 +161,7 @@ public class Peer
             System.exit(1);
         }
         if (target == null || target.equals("")) {
-            System.err.println("TARGET_NAME not in env. Exiting...");
-            System.exit(1);
+            System.out.println("TARGET_NAME not in env. Acting as receiver");
         }
         return target;
     }
@@ -196,8 +177,8 @@ public class Peer
             System.exit(1);
         }
         if (file == null || file.equals("")) {
-            System.err.println("FILE_NAME not in env. Exiting...");
-            System.exit(1);
+            System.out.println("FILE_NAME not in env. Acting as reciever");
+
         }
         return file;
     }

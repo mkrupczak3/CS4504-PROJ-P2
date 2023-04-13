@@ -69,6 +69,7 @@ public class RequestorThread extends Thread {
                     out.println(response);
                 }else if (command.equals("ADDDATA"))    {
                     String requester_name = in.readLine();
+                    System.out.println("Peer "+requester_name+" is adding data");
                     double[] data = new double[3]; //0 = Router lookup time, 1 = Message size in bytes, 2 = peer cycle time
                     for(int i = 0; i < 3; i++)
                     {
