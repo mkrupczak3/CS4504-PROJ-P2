@@ -1,9 +1,4 @@
 version: '3'
-networks:
-  pdc-net: # Docker-only overlay network
-    ipam:
-      config:
-        - subnet: 172.23.0.0/16
 
 services:
   router1:
@@ -11,55 +6,60 @@ services:
     environment:
       - CLIENT_LISTEN_PORT=5555
       - COUNTERPARTY_LISTEN_PORT=6666
-      - COUNTERPARTY_HOST=172.23.0.6
+      - COUNTERPARTY_HOST=router2 # Use service name instead of IP address
       - COUNTERPARTY_HOST_PORT=6666
     build: ../Router
-    networks:
-      pdc-net:
-         ipv4_address: 172.23.0.5
+
   router2:
     hostname: router2
     environment:
       - CLIENT_LISTEN_PORT=5555
       - COUNTERPARTY_LISTEN_PORT=6666
-      - COUNTERPARTY_HOST=172.23.0.5
+      - COUNTERPARTY_HOST=router1 # Use service name instead of IP address
       - COUNTERPARTY_HOST_PORT=6666
     build: ../Router
-    networks:
-      pdc-net:
-         ipv4_address: 172.23.0.6
+
   p01a:
     hostname: p01a
     environment:
-      - ROUTER_HOSTNAME=172.23.0.5
+      - ROUTER_HOSTNAME=router1 # Use service name instead of IP address
       - FILE_NAME=/app/shia_surprise_1500_kbps_1080p.mp4
-      - TARGET_NAME=p01b
+      - TARGET_NAME=p01b,p02b
     build: ../Peer
     volumes:
       - type: bind
-        source: ./test-files/PDF/shia_surprise_1500_kbps_1080p.mp4
+        source: ./test-files/MP4/shia_surprise_1500_kbps_1080p.mp4
         target: /app/shia_surprise_1500_kbps_1080p.mp4
-    networks:
-      - pdc-net
     depends_on:
       - router1
       - router2
 
-
   p01b:
     hostname: p01b
     environment:
-      - ROUTER_HOSTNAME=172.23.0.6
+      - ROUTER_HOSTNAME=router2 # Use service name instead of IP address
     build: ../Peer
     volumes:
       - type: volume
         source: p01b
         target: /app
-    networks:
-      - pdc-net
+    depends_on:
+      - router1
+      - router2
+
+  p02b:
+    hostname: p02b
+    environment:
+      - ROUTER_HOSTNAME=router2 # Use service name instead of IP address
+    build: ../Peer
+    volumes:
+      - type: volume
+        source: p02b
+        target: /app
     depends_on:
       - router1
       - router2
 
 volumes:
   p01b:
+  p02b:
