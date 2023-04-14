@@ -8,7 +8,10 @@ services:
       - COUNTERPARTY_LISTEN_PORT=6666
       - COUNTERPARTY_HOST=router2
       - COUNTERPARTY_HOST_PORT=6666
+      - DATA_FILE_NAME=/router-data/exp-MP4-trial-0-router1-data.csv
     build: ../Router
+    volumes:
+      - ../router-data:/router-data
 
   router2:
     hostname: router2
@@ -17,7 +20,10 @@ services:
       - COUNTERPARTY_LISTEN_PORT=6666
       - COUNTERPARTY_HOST=router1
       - COUNTERPARTY_HOST_PORT=6666
+      - DATA_FILE_NAME=/router-data/exp-MP4-trial-0-router2-data.csv
     build: ../Router
+    volumes:
+      - ../router-data:/router-data
 
   # 10 sending peers on side 'a'
   
