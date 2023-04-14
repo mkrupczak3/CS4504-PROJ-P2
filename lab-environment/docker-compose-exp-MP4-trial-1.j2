@@ -1,0 +1,65 @@
+version: '3'
+
+services:
+  router1:
+    hostname: router1
+    environment:
+      - CLIENT_LISTEN_PORT=5555
+      - COUNTERPARTY_LISTEN_PORT=6666
+      - COUNTERPARTY_HOST=router2
+      - COUNTERPARTY_HOST_PORT=6666
+      - DATA_FILE_NAME=/router-data/exp-MP4-trial-1-router1-data.csv
+    build: ../Router
+    volumes:
+      - ../router-data:/router-data
+
+  router2:
+    hostname: router2
+    environment:
+      - CLIENT_LISTEN_PORT=5555
+      - COUNTERPARTY_LISTEN_PORT=6666
+      - COUNTERPARTY_HOST=router1
+      - COUNTERPARTY_HOST_PORT=6666
+      - DATA_FILE_NAME=/router-data/exp-MP4-trial-1-router2-data.csv
+    build: ../Router
+    volumes:
+      - ../router-data:/router-data
+
+  # 10 sending peers on side 'a'
+  {% for i in range(1, 11) %}
+  p{{ '%02d' % i }}a:
+    hostname: p{{ '%02d' % i }}a
+    environment:
+      - ROUTER_HOSTNAME=router1
+      - FILE_NAME=/app/shia_surprise_375_kbps_540p.mp4
+      - TARGET_NAME=p01b,p02b,p03b,p04b,p05b,p06b,p07b,p08b,p09b,p10b
+    build: ../Peer
+    volumes:
+      - type: bind
+        source: ./test-files/MP4/shia_surprise_375_kbps_540p.mp4
+        target: /app/shia_surprise_375_kbps_540p.mp4
+    depends_on:
+      - router1
+      - router2
+  {% endfor %}
+
+  # 10 receiving peers on side 'b'
+  {% for i in range(1, 11) %}
+  p{{ '%02d' % i }}b:
+    hostname: p{{ '%02d' % i }}b
+    environment:
+      - ROUTER_HOSTNAME=router2
+    build: ../Peer
+    volumes:
+      - type: volume
+        source: p{{ '%02d' % i }}b
+        target: /app
+    depends_on:
+      - router1
+      - router2
+  {% endfor %}
+
+volumes:
+  {% for i in range(1, 11) %}
+  p{{ '%02d' % i }}b:
+  {% endfor %}

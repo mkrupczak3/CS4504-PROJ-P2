@@ -6,25 +6,33 @@ services:
     environment:
       - CLIENT_LISTEN_PORT=5555
       - COUNTERPARTY_LISTEN_PORT=6666
-      - COUNTERPARTY_HOST=router2 # Use service name instead of IP address
+      - COUNTERPARTY_HOST=router2
       - COUNTERPARTY_HOST_PORT=6666
+      - DATA_FILE_NAME=/router-data/exp-MP4-trial-1-router1-data.csv
     build: ../Router
+    volumes:
+      - ../router-data:/router-data
 
   router2:
     hostname: router2
     environment:
       - CLIENT_LISTEN_PORT=5555
       - COUNTERPARTY_LISTEN_PORT=6666
-      - COUNTERPARTY_HOST=router1 # Use service name instead of IP address
+      - COUNTERPARTY_HOST=router1
       - COUNTERPARTY_HOST_PORT=6666
+      - DATA_FILE_NAME=/router-data/exp-MP4-trial-1-router2-data.csv
     build: ../Router
+    volumes:
+      - ../router-data:/router-data
 
+  # 10 sending peers on side 'a'
+  
   p01a:
     hostname: p01a
     environment:
-      - ROUTER_HOSTNAME=router1 # Use service name instead of IP address
+      - ROUTER_HOSTNAME=router1
       - FILE_NAME=/app/shia_surprise_375_kbps_540p.mp4
-      - TARGET_NAME=p01b,p02b
+      - TARGET_NAME=p01b,p02b,p03b,p04b,p05b,p06b,p07b,p08b,p09b,p10b
     build: ../Peer
     volumes:
       - type: bind
@@ -33,11 +41,149 @@ services:
     depends_on:
       - router1
       - router2
+  
+  p02a:
+    hostname: p02a
+    environment:
+      - ROUTER_HOSTNAME=router1
+      - FILE_NAME=/app/shia_surprise_375_kbps_540p.mp4
+      - TARGET_NAME=p01b,p02b,p03b,p04b,p05b,p06b,p07b,p08b,p09b,p10b
+    build: ../Peer
+    volumes:
+      - type: bind
+        source: ./test-files/MP4/shia_surprise_375_kbps_540p.mp4
+        target: /app/shia_surprise_375_kbps_540p.mp4
+    depends_on:
+      - router1
+      - router2
+  
+  p03a:
+    hostname: p03a
+    environment:
+      - ROUTER_HOSTNAME=router1
+      - FILE_NAME=/app/shia_surprise_375_kbps_540p.mp4
+      - TARGET_NAME=p01b,p02b,p03b,p04b,p05b,p06b,p07b,p08b,p09b,p10b
+    build: ../Peer
+    volumes:
+      - type: bind
+        source: ./test-files/MP4/shia_surprise_375_kbps_540p.mp4
+        target: /app/shia_surprise_375_kbps_540p.mp4
+    depends_on:
+      - router1
+      - router2
+  
+  p04a:
+    hostname: p04a
+    environment:
+      - ROUTER_HOSTNAME=router1
+      - FILE_NAME=/app/shia_surprise_375_kbps_540p.mp4
+      - TARGET_NAME=p01b,p02b,p03b,p04b,p05b,p06b,p07b,p08b,p09b,p10b
+    build: ../Peer
+    volumes:
+      - type: bind
+        source: ./test-files/MP4/shia_surprise_375_kbps_540p.mp4
+        target: /app/shia_surprise_375_kbps_540p.mp4
+    depends_on:
+      - router1
+      - router2
+  
+  p05a:
+    hostname: p05a
+    environment:
+      - ROUTER_HOSTNAME=router1
+      - FILE_NAME=/app/shia_surprise_375_kbps_540p.mp4
+      - TARGET_NAME=p01b,p02b,p03b,p04b,p05b,p06b,p07b,p08b,p09b,p10b
+    build: ../Peer
+    volumes:
+      - type: bind
+        source: ./test-files/MP4/shia_surprise_375_kbps_540p.mp4
+        target: /app/shia_surprise_375_kbps_540p.mp4
+    depends_on:
+      - router1
+      - router2
+  
+  p06a:
+    hostname: p06a
+    environment:
+      - ROUTER_HOSTNAME=router1
+      - FILE_NAME=/app/shia_surprise_375_kbps_540p.mp4
+      - TARGET_NAME=p01b,p02b,p03b,p04b,p05b,p06b,p07b,p08b,p09b,p10b
+    build: ../Peer
+    volumes:
+      - type: bind
+        source: ./test-files/MP4/shia_surprise_375_kbps_540p.mp4
+        target: /app/shia_surprise_375_kbps_540p.mp4
+    depends_on:
+      - router1
+      - router2
+  
+  p07a:
+    hostname: p07a
+    environment:
+      - ROUTER_HOSTNAME=router1
+      - FILE_NAME=/app/shia_surprise_375_kbps_540p.mp4
+      - TARGET_NAME=p01b,p02b,p03b,p04b,p05b,p06b,p07b,p08b,p09b,p10b
+    build: ../Peer
+    volumes:
+      - type: bind
+        source: ./test-files/MP4/shia_surprise_375_kbps_540p.mp4
+        target: /app/shia_surprise_375_kbps_540p.mp4
+    depends_on:
+      - router1
+      - router2
+  
+  p08a:
+    hostname: p08a
+    environment:
+      - ROUTER_HOSTNAME=router1
+      - FILE_NAME=/app/shia_surprise_375_kbps_540p.mp4
+      - TARGET_NAME=p01b,p02b,p03b,p04b,p05b,p06b,p07b,p08b,p09b,p10b
+    build: ../Peer
+    volumes:
+      - type: bind
+        source: ./test-files/MP4/shia_surprise_375_kbps_540p.mp4
+        target: /app/shia_surprise_375_kbps_540p.mp4
+    depends_on:
+      - router1
+      - router2
+  
+  p09a:
+    hostname: p09a
+    environment:
+      - ROUTER_HOSTNAME=router1
+      - FILE_NAME=/app/shia_surprise_375_kbps_540p.mp4
+      - TARGET_NAME=p01b,p02b,p03b,p04b,p05b,p06b,p07b,p08b,p09b,p10b
+    build: ../Peer
+    volumes:
+      - type: bind
+        source: ./test-files/MP4/shia_surprise_375_kbps_540p.mp4
+        target: /app/shia_surprise_375_kbps_540p.mp4
+    depends_on:
+      - router1
+      - router2
+  
+  p10a:
+    hostname: p10a
+    environment:
+      - ROUTER_HOSTNAME=router1
+      - FILE_NAME=/app/shia_surprise_375_kbps_540p.mp4
+      - TARGET_NAME=p01b,p02b,p03b,p04b,p05b,p06b,p07b,p08b,p09b,p10b
+    build: ../Peer
+    volumes:
+      - type: bind
+        source: ./test-files/MP4/shia_surprise_375_kbps_540p.mp4
+        target: /app/shia_surprise_375_kbps_540p.mp4
+    depends_on:
+      - router1
+      - router2
+  
 
+  # 10 receiving peers on side 'b'
+  
   p01b:
     hostname: p01b
     environment:
-      - ROUTER_HOSTNAME=router2 # Use service name instead of IP address
+      - ROUTER_HOSTNAME=router2
     build: ../Peer
     volumes:
       - type: volume
@@ -46,11 +192,11 @@ services:
     depends_on:
       - router1
       - router2
-
+  
   p02b:
     hostname: p02b
     environment:
-      - ROUTER_HOSTNAME=router2 # Use service name instead of IP address
+      - ROUTER_HOSTNAME=router2
     build: ../Peer
     volumes:
       - type: volume
@@ -59,7 +205,131 @@ services:
     depends_on:
       - router1
       - router2
+  
+  p03b:
+    hostname: p03b
+    environment:
+      - ROUTER_HOSTNAME=router2
+    build: ../Peer
+    volumes:
+      - type: volume
+        source: p03b
+        target: /app
+    depends_on:
+      - router1
+      - router2
+  
+  p04b:
+    hostname: p04b
+    environment:
+      - ROUTER_HOSTNAME=router2
+    build: ../Peer
+    volumes:
+      - type: volume
+        source: p04b
+        target: /app
+    depends_on:
+      - router1
+      - router2
+  
+  p05b:
+    hostname: p05b
+    environment:
+      - ROUTER_HOSTNAME=router2
+    build: ../Peer
+    volumes:
+      - type: volume
+        source: p05b
+        target: /app
+    depends_on:
+      - router1
+      - router2
+  
+  p06b:
+    hostname: p06b
+    environment:
+      - ROUTER_HOSTNAME=router2
+    build: ../Peer
+    volumes:
+      - type: volume
+        source: p06b
+        target: /app
+    depends_on:
+      - router1
+      - router2
+  
+  p07b:
+    hostname: p07b
+    environment:
+      - ROUTER_HOSTNAME=router2
+    build: ../Peer
+    volumes:
+      - type: volume
+        source: p07b
+        target: /app
+    depends_on:
+      - router1
+      - router2
+  
+  p08b:
+    hostname: p08b
+    environment:
+      - ROUTER_HOSTNAME=router2
+    build: ../Peer
+    volumes:
+      - type: volume
+        source: p08b
+        target: /app
+    depends_on:
+      - router1
+      - router2
+  
+  p09b:
+    hostname: p09b
+    environment:
+      - ROUTER_HOSTNAME=router2
+    build: ../Peer
+    volumes:
+      - type: volume
+        source: p09b
+        target: /app
+    depends_on:
+      - router1
+      - router2
+  
+  p10b:
+    hostname: p10b
+    environment:
+      - ROUTER_HOSTNAME=router2
+    build: ../Peer
+    volumes:
+      - type: volume
+        source: p10b
+        target: /app
+    depends_on:
+      - router1
+      - router2
+  
 
 volumes:
+  
   p01b:
+  
   p02b:
+  
+  p03b:
+  
+  p04b:
+  
+  p05b:
+  
+  p06b:
+  
+  p07b:
+  
+  p08b:
+  
+  p09b:
+  
+  p10b:
+  

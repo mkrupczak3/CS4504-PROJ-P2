@@ -14,7 +14,7 @@ public class ClientThread extends Thread
     private String routerName;
     private String fileName;
     private int peerPortNum;
-    private int routerPortNum; 
+    private int routerPortNum;
     public ClientThread(String t, String routerN, int peerPort, int routerPort, String file)
     {
         peerTargetName = t;
@@ -79,7 +79,7 @@ public class ClientThread extends Thread
         //Router lookup data
         long routerLookupTimeEnd = System.nanoTime();
         long timeDifference = routerLookupTimeStart-routerLookupTimeEnd;
-        
+
 
         //Connect to targetPeer
         try{
@@ -98,10 +98,10 @@ public class ClientThread extends Thread
         //send the fileName
         out.println(fileName);
 
-        // converting file into bytes which can be sent to targetPeer
+        // converting file into bytes which can be sent tco targetPeer
         File sentFile = new File(fileName);
         byte[] fileByteArray = new byte[(int) sentFile.length()];
-        
+
         try {
             FileInputStream fileBytes = new FileInputStream(sentFile);
             fileBytes.read(fileByteArray);
