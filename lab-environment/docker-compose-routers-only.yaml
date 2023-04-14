@@ -1,0 +1,26 @@
+version: '3'
+
+services:
+  router1:
+    hostname: router1
+    environment:
+      - CLIENT_LISTEN_PORT=5555
+      - COUNTERPARTY_LISTEN_PORT=6666
+      - COUNTERPARTY_HOST=router2 # Use service name instead of IP address
+      - COUNTERPARTY_HOST_PORT=6666
+      - DATA_FILE_NAME=/router-data/gemini-trivial-router1-data.csv
+    build: ../Router
+    volumes:
+      - ../router-data:/router-data
+
+  router2:
+    hostname: router2
+    environment:
+      - CLIENT_LISTEN_PORT=5555
+      - COUNTERPARTY_LISTEN_PORT=6666
+      - COUNTERPARTY_HOST=router1 # Use service name instead of IP address
+      - COUNTERPARTY_HOST_PORT=6666
+      - DATA_FILE_NAME=/router-data/gemini-trivial-router2-data.csv
+    build: ../Router
+    volumes:
+      - ../router-data:/router-data
