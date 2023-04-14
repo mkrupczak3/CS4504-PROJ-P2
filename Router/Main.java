@@ -8,9 +8,10 @@ public class Main {
         int counterpartyListenPort = Integer.valueOf(getRequiredEnv("COUNTERPARTY_LISTEN_PORT", "6666"));
         String counterpartyHost = getRequiredEnv("COUNTERPARTY_HOST");
         int counterpartyPort = Integer.valueOf(getRequiredEnv("COUNTERPARTY_PORT", "6666"));
+        String dataFileName = getRequiredEnv("DATA_FILE_NAME");
 
         Router router = new Router(requesterListenPort, counterpartyListenPort,
-                                   counterpartyHost, counterpartyPort);
+                                   counterpartyHost, counterpartyPort, dataFileName);
 
         try {
             router.run();

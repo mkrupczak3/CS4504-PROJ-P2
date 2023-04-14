@@ -13,22 +13,44 @@ public class Router {
     private String counterpartyHost;
     private int counterpartyPort;
 
+    private String dataFileName;
+
     private ServerSocket requesterListenSocket_;
     private ServerSocket counterpartyListenSocket_;
     private Socket counterpartySocket_;
-    public static SynchronizedRollingAverage lookupAverage = new SynchronizedRollingAverage();
-    public static SynchronizedRollingAverage messageSizeAverage = new SynchronizedRollingAverage();
-    public static SynchronizedRollingAverage peerCycleTime = new SynchronizedRollingAverage();
-
 
     public Router(int requesterListenPort, int counterpartyListenPort,
-                  String counterpartyHost, int counterpartyPort) {
+                  String counterpartyHost, int counterpartyPort, String dataFileName) {
         this.requesterListenPort = requesterListenPort;
         this.counterpartyListenPort = counterpartyListenPort;
         this.counterpartyHost = counterpartyHost;
         this.counterpartyPort = counterpartyPort;
+        this.dataFileName = dataFileName;
+
+        createDataFile();
     }
 
+    public synchronized void createDataFile() {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(dataFileName));
+            writer.write("peer_name,lookup_time,message_size,peer_cycle_time\n");
+            writer.close();
+        } catch (IOException e) {
+            System.err.println("Error opening data file! "+ e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public synchronized void appendDataFile(String peerName, double lookupTime, double messageSize, double peerCycleTime) {
+        try {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(dataFileName, true)); // append 
+            writer.append(String.format("%s,%f,%f,%f\n", peerName, lookupTime, messageSize, peerCycleTime));
+            writer.close();
+        } catch (IOException e) {
+            System.err.println("Error opening data file! "+e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
     // doesn't have to be synchronized because myPeers_ is a ConcurrentHashMap 
     public void addPeer(String name, InetAddress addr) {
