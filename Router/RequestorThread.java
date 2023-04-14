@@ -1,6 +1,7 @@
 import java.io.*;
 import java.net.*;
 import java.util.HashMap;
+import java.util.function.Function;
 
 public class RequestorThread extends Thread {
     // public static SynchronizedRollingAverage lookupAverage = new SynchronizedRollingAverage();
@@ -70,23 +71,26 @@ public class RequestorThread extends Thread {
                 }else if (command.equals("ADDDATA"))    {
                     String requester_name = in.readLine();
                     System.out.println("Peer "+requester_name+" is adding data");
-                    double[] data = new double[3]; //0 = Router lookup time, 1 = Message size in bytes, 2 = peer cycle time
-                    for(int i = 0; i < 3; i++)
-                    {
-                        String dataString = in.readLine();
+
+                    Function<String, Double> stringToDouble = (String str) -> {
                         try
                         {
-                            data[i] = Double.parseDouble(dataString);
+                            return Double.parseDouble(str);
                         }
                         catch (NumberFormatException e)
                         {
                             System.err.println("Failed to parse data from Peer\n" + e.getMessage());
+                            return -1.0;
                         }
-                    }
-                    out.println("Parse Successful. Averaging Data");
-                    Router.lookupAverage.addValue(data[0]);
-                    Router.messageSizeAverage.addValue(data[1]);
-                    Router.peerCycleTime.addValue(data[2]);
+                    };
+
+                    double lookupTime = stringToDouble.apply(in.readLine());
+                    double messageSize = stringToDouble.apply(in.readLine());
+                    double peerCycleTime = stringToDouble.apply(in.readLine());
+
+                    router_.appendDataFile(requester_name, lookupTime, messageSize, peerCycleTime);
+
+                    out.println("Data Parse Successful");
                 } else {
                     System.err.println(String.format("Unexpected command from peer %s: %s",
                                                      addr.getHostAddress(), command));
