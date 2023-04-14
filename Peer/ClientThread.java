@@ -78,7 +78,7 @@ public class ClientThread extends Thread
 
         //Router lookup data
         long routerLookupTimeEnd = System.nanoTime();
-        long timeDifference = routerLookupTimeStart-routerLookupTimeEnd;
+        long timeDifference = routerLookupTimeEnd - routerLookupTimeStart;
 
 
         //Connect to targetPeer
@@ -125,7 +125,7 @@ public class ClientThread extends Thread
         }
 
         long peerCycleTimeEnd = System.nanoTime();
-        long cycleTime = peerCycleTimeStart - peerCycleTimeEnd;
+        long cycleTime = peerCycleTimeEnd - peerCycleTimeStart;
         //printing variable data to router
         try (Socket sock = new Socket(routerName, routerPortNum)) {
             PrintWriter dataOut = new PrintWriter(sock.getOutputStream(), true);
